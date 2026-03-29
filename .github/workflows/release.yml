@@ -33,18 +33,20 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$APPLE_KEYCHAIN_PASSWORD" "$RUNNER_TEMP/build.keychain-db"
           security list-keychains -d user -s "$RUNNER_TEMP/build.keychain-db" ~/Library/Keychains/login.keychain-db
       - name: Create Apple notarization profile
-        if: ${{ runner.os == 'macOS' && secrets.APPLE_KEYCHAIN_PROFILE != '' && secrets.APPLE_APP_SPECIFIC_PASSWORD != '' }}
+        if: runner.os == 'macOS'
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           APPLE_KEYCHAIN_PROFILE: ${{ secrets.APPLE_KEYCHAIN_PROFILE }}
         run: |
-          xcrun notarytool store-credentials "$APPLE_KEYCHAIN_PROFILE" \
-            --apple-id "$APPLE_ID" \
-            --team-id "$APPLE_TEAM_ID" \
-            --password "$APPLE_APP_SPECIFIC_PASSWORD" \
-            --keychain "$RUNNER_TEMP/build.keychain-db"
+          if [ -n "$APPLE_KEYCHAIN_PROFILE" ] && [ -n "$APPLE_APP_SPECIFIC_PASSWORD" ]; then
+            xcrun notarytool store-credentials "$APPLE_KEYCHAIN_PROFILE" \
+              --apple-id "$APPLE_ID" \
+              --team-id "$APPLE_TEAM_ID" \
+              --password "$APPLE_APP_SPECIFIC_PASSWORD" \
+              --keychain "$RUNNER_TEMP/build.keychain-db"
+          fi
       - run: npm ci
       - run: npm run build
       - run: npm --workspace @quietclaw/desktop run make
