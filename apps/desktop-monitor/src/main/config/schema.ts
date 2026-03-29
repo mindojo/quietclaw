@@ -7,7 +7,8 @@ import {
   DEFAULT_URGENT_TEMPLATE,
 } from "./promptDefaults.js";
 
-export const LEGAL_BUNDLE_VERSION = "2026-03-29.1";
+// Re-export from shared (renderer-safe) location
+export { LEGAL_BUNDLE_VERSION } from "../../shared/legalConstants.js";
 
 const LegalDocsSchema = z.object({
   termsVersion: z.string().nullable(),

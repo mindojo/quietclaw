@@ -19,7 +19,7 @@ import type {
   SaveSettingsInput,
   TelegramStatus,
 } from "../../preload/api";
-import { isCurrentLegalAcceptance } from "../../main/config/schema";
+import { isCurrentLegalAcceptance } from "../../shared/legalConstants";
 import { monitorAppClient } from "../api/ipcClient";
 import {
   queryKeys,

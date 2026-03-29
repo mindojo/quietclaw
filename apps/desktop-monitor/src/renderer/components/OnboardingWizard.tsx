@@ -16,7 +16,7 @@ import type {
   TelegramStatus,
   TelegramTokenResult,
 } from "../../preload/api";
-import { LEGAL_BUNDLE_VERSION } from "../../main/config/schema";
+import { LEGAL_BUNDLE_VERSION } from "../../shared/legalConstants";
 import "./OnboardingWizard.css";
 
 type OnboardingWizardProps = {

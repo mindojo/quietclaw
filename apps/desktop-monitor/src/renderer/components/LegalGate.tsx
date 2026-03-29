@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 
-import { LEGAL_BUNDLE_VERSION } from "../../main/config/schema";
+import { LEGAL_BUNDLE_VERSION } from "../../shared/legalConstants";
 import { monitorAppClient } from "../api/ipcClient";
 
 type LegalGateProps = {
