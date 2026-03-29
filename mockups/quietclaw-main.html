@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>QuietClaw</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        "primary": "#0053db",
+        "primary-dim": "#0048c1",
+        "primary-container": "#dbe1ff",
+        "on-primary": "#f8f7ff",
+        "on-surface": "#0f1b2d",
+        "on-surface-variant": "#3d5a80",
+        "surface": "#f8f9ff",
+        "surface-low": "#f1f4fb",
+        "surface-high": "#dce5f3",
+        "surface-white": "#ffffff",
+        "outline-variant": "#b0c4de",
+        "warn": "#e97500",
+        "warn-bg": "#fff7ed",
+        "warn-border": "#fed7aa",
+        "error-text": "#b91c1c",
+        "error-bg": "#fef2f2",
+      },
+      fontFamily: { "body": ["Inter", "sans-serif"] },
+    },
+  },
+}
+</script>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; margin: 0; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .popup-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.2); z-index: 200; display: flex; align-items: center; justify-content: center; }
+  .popup-card { background: white; border-radius: 12px; box-shadow: 0 20px 60px -15px rgba(0,30,60,0.18); width: 440px; max-height: 500px; overflow: hidden; }
+  .disabled-overlay { opacity: 0.35; pointer-events: none; }
+  .stale-row { background: #fff7ed; }
+</style>
+</head>
+<body class="bg-surface text-on-surface h-screen flex flex-col overflow-hidden selection:bg-primary-container">
+
+<!-- ═══════════ TOP BAR ═══════════ -->
+<header class="bg-white/90 backdrop-blur-sm flex justify-between items-center w-full px-6 h-13 min-h-[52px] border-b border-outline-variant/20 z-30 shrink-0">
+  <div class="flex items-center gap-4">
+    <h1 class="text-[17px] font-bold tracking-tight text-on-surface">QuietClaw</h1>
+    <div class="h-4 w-px bg-outline-variant/30"></div>
+    <div class="flex items-center gap-2" id="connIndicator">
+      <span class="w-[7px] h-[7px] rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.4)]" id="connDot"></span>
+      <span class="text-[11px] font-medium text-on-surface-variant" id="connText">Connected to 127.0.0.1:43123</span>
+    </div>
+  </div>
+  <button class="p-2 rounded-lg text-on-surface-variant hover:bg-surface-low transition-colors" title="Settings">
+    <span class="material-symbols-outlined text-[22px]">settings</span>
+  </button>
+</header>
+
+<!-- ═══════════ STICKY CONFIG BAR ═══════════ -->
+<div class="bg-white border-b border-outline-variant/15 px-6 py-4 shrink-0 z-20" id="configBar">
+  <div class="max-w-[1100px] mx-auto flex items-end gap-6">
+
+    <!-- Target Group -->
+    <div class="flex flex-col gap-1 min-w-[220px]">
+      <label class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Target Group</label>
+      <button id="targetBtn" onclick="togglePopup()"
+        class="flex items-center justify-between border rounded-lg px-3.5 py-2 text-sm font-medium transition-colors hover:border-primary/40"
+        data-has-target="true">
+        <span id="targetLabel">My Alerts</span>
+        <span class="material-symbols-outlined text-on-surface-variant text-[18px]">unfold_more</span>
+      </button>
+    </div>
+
+    <!-- Daily Summary Time -->
+    <div class="flex flex-col gap-1" id="timingSection">
+      <label class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Daily Summary</label>
+      <div class="flex items-center gap-2">
+        <input type="time" value="20:30" class="bg-surface-low border border-outline-variant/30 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary/40 w-[110px]"/>
+        <select class="bg-surface-low border border-outline-variant/30 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary/40 w-[170px] appearance-none">
+          <option selected>Asia/Jerusalem</option>
+          <option>UTC</option>
+          <option>America/New_York</option>
+          <option>Europe/London</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Spacer -->
+    <div class="flex-1"></div>
+
+    <!-- Send Test Summary -->
+    <div class="flex flex-col items-end gap-1">
+      <button id="sendBtn" class="flex items-center gap-2 bg-primary text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-primary-dim transition-colors active:scale-[0.97] shadow-sm shadow-primary/10 whitespace-nowrap">
+        <span class="material-symbols-outlined text-[16px]">send</span>
+        Send Test Summary
+      </button>
+      <span class="text-[10px] text-on-surface-variant" id="sendHint"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ WATCHED GROUPS (scrollable) ═══════════ -->
+<div class="flex-1 overflow-hidden flex flex-col">
+
+  <!-- Groups header (sticky within scroll area) -->
+  <div class="bg-surface-low/80 backdrop-blur-sm px-6 py-3 border-b border-outline-variant/10 shrink-0">
+    <div class="max-w-[1100px] mx-auto flex items-center justify-between">
+      <h2 class="text-sm font-semibold text-on-surface">Watched Groups</h2>
+      <div class="flex items-center gap-3">
+        <span class="text-[11px] font-medium text-on-surface-variant" id="counterSummary">3 daily summary</span>
+        <span class="text-[11px] text-outline-variant">·</span>
+        <span class="text-[11px] font-medium text-on-surface-variant" id="counterUrgent">2 forward urgent</span>
+      </div>
+    </div>
+    <!-- Column headers -->
+    <div class="max-w-[1100px] mx-auto grid grid-cols-[1fr_130px_130px] mt-2 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+      <span>Group</span>
+      <div class="flex flex-col items-center gap-1">
+        <span>Daily Summary</span>
+        <input type="checkbox" id="selAllSummary" class="w-3.5 h-3.5 rounded text-primary border-outline-variant/50 cursor-pointer" checked onchange="toggleAll('summary', this.checked)"/>
+      </div>
+      <div class="flex flex-col items-center gap-1">
+        <span>Forward Urgent</span>
+        <input type="checkbox" id="selAllUrgent" class="w-3.5 h-3.5 rounded text-primary border-outline-variant/50 cursor-pointer" onchange="toggleAll('urgent', this.checked)"/>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scrollable group rows -->
+  <div class="flex-1 overflow-y-auto px-6" id="groupList">
+    <div class="max-w-[1100px] mx-auto divide-y divide-outline-variant/8">
+
+      <div class="grid grid-cols-[1fr_130px_130px] py-3 items-center hover:bg-surface-low/40 transition-colors">
+        <span class="text-sm font-medium">Parents Committee</span>
+        <div class="flex justify-center"><input type="checkbox" class="scb w-4 h-4 rounded text-primary border-outline-variant/40 cursor-pointer" data-type="summary" checked onchange="updateCounters()"/></div>
+        <div class="flex justify-center"><input type="checkbox" class="ucb w-4 h-4 rounded text-primary border-outline-variant/40 cursor-pointer" data-type="urgent" checked onchange="updateCounters()"/></div>
+      </div>
+
+      <div class="grid grid-cols-[1fr_130px_130px] py-3 items-center hover:bg-surface-low/40 transition-colors">
+        <span class="text-sm font-medium">Building Residents</span>
+        <div class="flex justify-center"><input type="checkbox" class="scb w-4 h-4 rounded text-primary border-outline-variant/40 cursor-pointer" data-type="summary" checked onchange="updateCounters()"/></div>
+        <div class="flex justify-center"><input type="checkbox" class="ucb w-4 h-4 rounded text-primary border-outline-variant/40 cursor-pointer" data-type="urgent" onchange="updateCounters()"/></div>
+      </div>
+
+      <div class="grid grid-cols-[1fr_130px_130px] py-3 items-center hover:bg-surface-low/40 transition-colors">
+        <span class="text-sm font-medium">School Updates</span>
+        <div class="flex justify-center"><input type="checkbox" class="scb w-4 h-4 rounded text-primary border-outline-variant/40 cursor-pointer" data-type="summary" checked onchange="updateCounters()"/></div>
+        <div class="flex justify-center"><input type="checkbox" class="ucb w-4 h-4 rounded text-primary border-outline-variant/40 cursor-pointer" data-type="urgent" onchange="updateCounters()"/></div>
+      </div>
+
+      <div class="grid grid-cols-[1fr_130px_130px] py-3 items-center hover:bg-surface-low/40 transition-colors">
+        <span class="text-sm font-medium">My Alerts Wide</span>
+        <div class="flex justify-center"><input type="checkbox" class="scb w-4 h-4 rounded text-primary border-outline-variant/40 cursor-pointer" data-type="summary" onchange="updateCounters()"/></div>
+        <div class="flex justify-center"><input type="checkbox" class="ucb w-4 h-4 rounded text-primary border-outline-variant/40 cursor-pointer" data-type="urgent" checked onchange="updateCounters()"/></div>
+      </div>
+
+      <div class="grid grid-cols-[1fr_130px_130px] py-3 items-center hover:bg-surface-low/40 transition-colors">
+        <span class="text-sm font-medium">Neighborhood Watch</span>
+        <div class="flex justify-center"><input type="checkbox" class="scb w-4 h-4 rounded text-primary border-outline-variant/40 cursor-pointer" data-type="summary" onchange="updateCounters()"/></div>
+        <div class="flex justify-center"><input type="checkbox" class="ucb w-4 h-4 rounded text-primary border-outline-variant/40 cursor-pointer" data-type="urgent" checked onchange="updateCounters()"/></div>
+      </div>
+
+      <div class="grid grid-cols-[1fr_130px_130px] py-3 items-center hover:bg-surface-low/40 transition-colors">
+        <span class="text-sm font-medium">Sports Team</span>
+        <div class="flex justify-center"><input type="checkbox" class="scb w-4 h-4 rounded text-primary border-outline-variant/40 cursor-pointer" data-type="summary" onchange="updateCounters()"/></div>
+        <div class="flex justify-center"><input type="checkbox" class="ucb w-4 h-4 rounded text-primary border-outline-variant/40 cursor-pointer" data-type="urgent" onchange="updateCounters()"/></div>
+      </div>
+
+      <div class="grid grid-cols-[1fr_130px_130px] py-3 items-center hover:bg-surface-low/40 transition-colors">
+        <span class="text-sm font-medium">Family Group</span>
+        <div class="flex justify-center"><input type="checkbox" class="scb w-4 h-4 rounded text-primary border-outline-variant/40 cursor-pointer" data-type="summary" onchange="updateCounters()"/></div>
+        <div class="flex justify-center"><input type="checkbox" class="ucb w-4 h-4 rounded text-primary border-outline-variant/40 cursor-pointer" data-type="urgent" onchange="updateCounters()"/></div>
+      </div>
+
+      <div class="grid grid-cols-[1fr_130px_130px] py-3 items-center hover:bg-surface-low/40 transition-colors">
+        <span class="text-sm font-medium">Work Notices</span>
+        <div class="flex justify-center"><input type="checkbox" class="scb w-4 h-4 rounded text-primary border-outline-variant/40 cursor-pointer" data-type="summary" onchange="updateCounters()"/></div>
+        <div class="flex justify-center"><input type="checkbox" class="ucb w-4 h-4 rounded text-primary border-outline-variant/40 cursor-pointer" data-type="urgent" onchange="updateCounters()"/></div>
+      </div>
+
+      <!-- Stale group example -->
+      <div class="grid grid-cols-[1fr_130px_130px] py-3 items-center stale-row rounded-lg px-2 -mx-2">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-warn text-[16px]">warning</span>
+          <span class="text-sm font-medium text-on-surface/60 line-through">Old Project Chat</span>
+          <span class="text-[10px] font-bold text-warn bg-warn-bg border border-warn-border px-1.5 py-0.5 rounded">Unavailable</span>
+        </div>
+        <div class="flex justify-center"><input type="checkbox" class="w-4 h-4 rounded border-outline-variant/40 opacity-30" disabled checked/></div>
+        <div class="flex justify-center"><input type="checkbox" class="w-4 h-4 rounded border-outline-variant/40 opacity-30" disabled/></div>
+      </div>
+
+    </div>
+
+    <!-- Warning when no groups selected -->
+    <div class="max-w-[1100px] mx-auto py-3 hidden" id="noGroupsWarn">
+      <div class="flex items-center gap-2 text-warn text-xs font-medium">
+        <span class="material-symbols-outlined text-[14px]">info</span>
+        Select at least one group to enable monitoring
+      </div>
+    </div>
+  </div>
+
+  <!-- Save button (floating bottom-right of scroll area) -->
+  <div class="px-6 py-3 bg-white/90 backdrop-blur-sm border-t border-outline-variant/10 shrink-0">
+    <div class="max-w-[1100px] mx-auto flex justify-between items-center">
+      <div class="flex items-center gap-4">
+        <!-- Recent activity inline -->
+        <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/50">Recent</span>
+        <span class="text-[10px] text-on-surface-variant/50">09:55 urgent_queued · 08:00 digest_queued · 07:45 connected</span>
+      </div>
+      <button class="bg-primary text-white px-6 py-2 rounded-lg text-sm font-semibold hover:bg-primary-dim transition-colors active:scale-[0.97]">
+        Save
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ TARGET POPUP ═══════════ -->
+<div id="targetPopup" class="popup-backdrop" style="display:none" onclick="if(event.target===this)togglePopup()">
+  <div class="popup-card">
+    <div class="px-5 pt-5 pb-3 border-b border-gray-100">
+      <h3 class="text-sm font-semibold text-on-surface">Select Target Group</h3>
+      <p class="text-xs text-on-surface-variant mt-1">Where summaries and urgent alerts will be sent</p>
+    </div>
+    <div class="divide-y divide-gray-50 max-h-[320px] overflow-y-auto" id="popupList">
+      <button onclick="selectTarget('Parents Committee')" class="w-full text-left px-5 py-3 text-sm font-medium hover:bg-blue-50/50 transition-colors flex items-center justify-between group">
+        <span>Parents Committee</span>
+        <span class="material-symbols-outlined text-[16px] text-primary opacity-0 group-hover:opacity-100 transition-opacity">arrow_forward</span>
+      </button>
+      <button onclick="selectTarget('Building Residents')" class="w-full text-left px-5 py-3 text-sm font-medium hover:bg-blue-50/50 transition-colors flex items-center justify-between group">
+        <span>Building Residents</span>
+        <span class="material-symbols-outlined text-[16px] text-primary opacity-0 group-hover:opacity-100 transition-opacity">arrow_forward</span>
+      </button>
+      <button onclick="selectTarget('School Updates')" class="w-full text-left px-5 py-3 text-sm font-medium hover:bg-blue-50/50 transition-colors flex items-center justify-between group">
+        <span>School Updates</span>
+        <span class="material-symbols-outlined text-[16px] text-primary opacity-0 group-hover:opacity-100 transition-opacity">arrow_forward</span>
+      </button>
+      <button onclick="selectTarget('My Alerts')" class="w-full text-left px-5 py-3 text-sm font-medium hover:bg-blue-50/50 transition-colors flex items-center justify-between group bg-primary-container/15">
+        <span>My Alerts <span class="text-[10px] text-primary font-bold uppercase ml-2">current</span></span>
+        <span class="material-symbols-outlined text-[16px] text-primary">check</span>
+      </button>
+      <button onclick="selectTarget('My Alerts Wide')" class="w-full text-left px-5 py-3 text-sm font-medium hover:bg-blue-50/50 transition-colors flex items-center justify-between group">
+        <span>My Alerts Wide</span>
+        <span class="material-symbols-outlined text-[16px] text-primary opacity-0 group-hover:opacity-100 transition-opacity">arrow_forward</span>
+      </button>
+    </div>
+    <div class="px-5 py-3 bg-gray-50/60 border-t border-gray-100">
+      <p class="text-[11px] text-on-surface-variant leading-relaxed">
+        <span class="material-symbols-outlined text-[12px] align-middle mr-0.5">info</span>
+        Don't see your group? Make sure it exists and has received at least one message.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ DEMO: NO TARGET STATE ═══════════ -->
+<!-- Toggle with the button below to see the "no target" warning state -->
+<div class="fixed bottom-4 left-4 z-50 flex gap-2">
+  <button onclick="simulateNoTarget()" class="bg-gray-800 text-white text-[10px] px-3 py-1.5 rounded-full font-bold uppercase tracking-wider hover:bg-gray-700">[Demo] No target</button>
+  <button onclick="simulateWithTarget()" class="bg-gray-800 text-white text-[10px] px-3 py-1.5 rounded-full font-bold uppercase tracking-wider hover:bg-gray-700">[Demo] With target</button>
+  <button onclick="simulateDisconnected()" class="bg-gray-800 text-white text-[10px] px-3 py-1.5 rounded-full font-bold uppercase tracking-wider hover:bg-gray-700">[Demo] Disconnected</button>
+</div>
+
+<script>
+// ── Popup ──
+function togglePopup() {
+  const p = document.getElementById('targetPopup');
+  p.style.display = p.style.display === 'none' ? 'flex' : 'none';
+}
+
+function selectTarget(name) {
+  document.getElementById('targetLabel').textContent = name;
+  document.getElementById('targetBtn').dataset.hasTarget = 'true';
+  document.getElementById('targetBtn').classList.remove('border-warn', 'bg-warn-bg');
+  document.getElementById('targetBtn').classList.add('border-outline-variant/30');
+  document.getElementById('timingSection').classList.remove('disabled-overlay');
+  document.getElementById('groupList').parentElement.classList.remove('disabled-overlay');
+  document.getElementById('sendBtn').disabled = false;
+  document.getElementById('sendBtn').classList.remove('opacity-40','cursor-not-allowed');
+  document.getElementById('sendHint').textContent = '';
+  togglePopup();
+}
+
+// ── Select all ──
+function toggleAll(type, checked) {
+  const cls = type === 'summary' ? '.scb' : '.ucb';
+  document.querySelectorAll(cls).forEach(cb => { if (!cb.disabled) cb.checked = checked; });
+  updateCounters();
+}
+
+// ── Counters ──
+function updateCounters() {
+  const sc = document.querySelectorAll('.scb:checked').length;
+  const uc = document.querySelectorAll('.ucb:checked').length;
+  document.getElementById('counterSummary').textContent = sc + ' daily summary';
+  document.getElementById('counterUrgent').textContent = uc + ' forward urgent';
+
+  // Update select-all indeterminate state
+  const allS = document.querySelectorAll('.scb:not([disabled])');
+  const allU = document.querySelectorAll('.ucb:not([disabled])');
+  const selAllS = document.getElementById('selAllSummary');
+  const selAllU = document.getElementById('selAllUrgent');
+  selAllS.checked = sc === allS.length;
+  selAllS.indeterminate = sc > 0 && sc < allS.length;
+  selAllU.checked = uc === allU.length;
+  selAllU.indeterminate = uc > 0 && uc < allU.length;
+
+  // Show/hide no groups warning
+  const warn = document.getElementById('noGroupsWarn');
+  if (sc === 0 && uc === 0) { warn.classList.remove('hidden'); } else { warn.classList.add('hidden'); }
+
+  // Disable send if no summary groups
+  const hasTarget = document.getElementById('targetBtn').dataset.hasTarget === 'true';
+  if (!hasTarget || sc === 0) {
+    document.getElementById('sendBtn').disabled = true;
+    document.getElementById('sendBtn').classList.add('opacity-40','cursor-not-allowed');
+    document.getElementById('sendHint').textContent = !hasTarget ? 'Select a target group' : 'Select at least one daily summary group';
+  } else {
+    document.getElementById('sendBtn').disabled = false;
+    document.getElementById('sendBtn').classList.remove('opacity-40','cursor-not-allowed');
+    document.getElementById('sendHint').textContent = '';
+  }
+}
+
+// ── Demo state toggles ──
+function simulateNoTarget() {
+  document.getElementById('targetLabel').textContent = 'Select target group...';
+  document.getElementById('targetBtn').dataset.hasTarget = 'false';
+  document.getElementById('targetBtn').classList.add('border-warn', 'bg-warn-bg');
+  document.getElementById('targetBtn').classList.remove('border-outline-variant/30');
+  document.getElementById('timingSection').classList.add('disabled-overlay');
+  document.getElementById('groupList').parentElement.querySelector('.divide-y').parentElement.classList.add('disabled-overlay');
+  document.getElementById('sendBtn').disabled = true;
+  document.getElementById('sendBtn').classList.add('opacity-40','cursor-not-allowed');
+  document.getElementById('sendHint').textContent = 'Select a target group first';
+}
+
+function simulateWithTarget() {
+  selectTarget('My Alerts');
+  // Remove the popup toggle that selectTarget does
+}
+
+function simulateDisconnected() {
+  document.getElementById('connDot').classList.remove('bg-emerald-500');
+  document.getElementById('connDot').classList.add('bg-red-400');
+  document.getElementById('connDot').style.boxShadow = '0 0 5px rgba(248,113,113,0.4)';
+  document.getElementById('connText').textContent = 'Disconnected';
+}
+
+// Init
+updateCounters();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "id": "11_telegram_waiting_for_start",
+  "description": "Verified Telegram token waits for /start when no update arrives.",
+  "layer": "telegram",
+  "initial_state": {
+    "fake_bot": {
+      "username": "quietclaw_test_bot"
+    }
+  },
+  "events": [],
+  "actions": [
+    { "type": "set_bot_token", "token": "good-token" },
+    { "type": "wait", "ms": 20 }
+  ],
+  "assertions": [
+    { "type": "telegram_state", "equals": "waiting_for_start" },
+    { "type": "telegram_bot_username", "equals": "quietclaw_test_bot" }
+  ]
+}

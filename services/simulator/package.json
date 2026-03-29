@@ -1,0 +1,20 @@
+{
+  "name": "@quietclaw/simulator",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "test": "echo test-ok",
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@quietclaw/ingest-contract": "1.0.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.5"
+  }
+}

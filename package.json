@@ -1,0 +1,33 @@
+{
+  "name": "quietclaw-desktop",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "services/*"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "lint": "npm run lint --workspaces",
+    "test": "npm run test --workspaces && npm run test:e2e",
+    "test:e2e": "playwright test",
+    "dev:contract": "npm --workspace @quietclaw/gateway-contract run dev",
+    "dev:daemon": "npm --workspace @quietclaw/live-daemon run dev",
+    "dev:simulator": "npm --workspace @quietclaw/simulator run dev",
+    "dev:app": "npm --workspace @quietclaw/desktop run start",
+    "build:app": "npm --workspace @quietclaw/desktop run package",
+    "make:app": "npm --workspace @quietclaw/desktop run make",
+    "generate:schemas": "npm --workspace @quietclaw/gateway-contract run generate:schemas",
+    "test:harness": "npm --workspace @quietclaw/harness run test"
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "@playwright/test": "^1.54.2",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}

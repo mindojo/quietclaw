@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>QuietClaw — Settings</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        "primary": "#005db5",
+        "primary-container": "#d6e3ff",
+        "on-primary": "#ffffff",
+        "on-surface": "#1a1c1e",
+        "on-surface-variant": "#424752",
+        "surface": "#f9f9fc",
+        "surface-low": "#f3f3f6",
+        "surface-high": "#e8e8eb",
+        "surface-highest": "#e2e2e5",
+        "outline-variant": "#c2c6d4",
+      },
+      fontFamily: { "body": ["Inter", "sans-serif"] },
+    },
+  },
+}
+</script>
+<style>
+  body { font-family: 'Inter', sans-serif; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #e2e2e5; border-radius: 10px; }
+</style>
+</head>
+<body class="bg-surface font-body text-on-surface min-h-screen flex flex-col selection:bg-primary-container">
+
+<!-- Header -->
+<header class="w-full sticky top-0 z-50 bg-white/90 backdrop-blur-sm flex items-center justify-between px-6 py-3 border-b border-outline-variant/20">
+  <span class="text-lg font-semibold tracking-tight">Settings</span>
+  <button class="text-on-surface-variant hover:bg-surface-high p-1.5 rounded-lg transition-colors active:scale-95">
+    <span class="material-symbols-outlined">close</span>
+  </button>
+</header>
+
+<!-- Main Content -->
+<main class="flex-1 max-w-3xl mx-auto w-full px-6 py-10 overflow-y-auto">
+  <div class="flex flex-col gap-10">
+
+    <!-- 1. Gateway Connection -->
+    <section class="bg-surface-low p-7 rounded-xl">
+      <div class="flex items-center gap-3 mb-6">
+        <span class="material-symbols-outlined text-primary">hub</span>
+        <h2 class="text-lg font-semibold tracking-tight">Gateway Connection</h2>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div class="space-y-1.5">
+          <label class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Host</label>
+          <input class="w-full bg-surface-high border-none focus:ring-2 focus:ring-primary-container rounded-lg px-4 py-2.5 text-sm" type="text" value="127.0.0.1"/>
+          <p class="text-[11px] text-on-surface-variant/60 italic">Loopback addresses only</p>
+        </div>
+        <div class="space-y-1.5">
+          <label class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Port</label>
+          <input class="w-full bg-surface-high border-none focus:ring-2 focus:ring-primary-container rounded-lg px-4 py-2.5 text-sm" type="text" value="43123"/>
+        </div>
+        <div class="md:col-span-2 space-y-1.5">
+          <label class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Token</label>
+          <div class="relative">
+            <input id="tokenField" class="w-full bg-surface-high border-none focus:ring-2 focus:ring-primary-container rounded-lg pl-4 pr-12 py-2.5 text-sm" type="password" value="quietclaw-demo-token"/>
+            <button onclick="toggleToken()" class="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant/50 hover:text-primary transition-colors">
+              <span class="material-symbols-outlined text-[20px]" id="tokenIcon">visibility</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="mt-5 flex items-center gap-3">
+        <input checked class="w-4 h-4 text-primary rounded border-outline-variant focus:ring-primary" id="remember" type="checkbox"/>
+        <label class="text-sm font-medium text-on-surface-variant" for="remember">Remember connection</label>
+      </div>
+      <div class="mt-6 flex items-center gap-3">
+        <button class="bg-primary text-on-primary px-6 py-2.5 rounded-lg text-sm font-semibold shadow-sm hover:opacity-90 transition-all active:scale-95">Connect</button>
+        <button class="border border-outline-variant text-primary px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-surface-highest transition-colors active:scale-95">Disconnect</button>
+      </div>
+    </section>
+
+    <!-- 2. Inference Runner -->
+    <section class="space-y-4">
+      <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined text-primary">memory</span>
+        <h2 class="text-lg font-semibold tracking-tight">Inference Runner</h2>
+      </div>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <label class="cursor-pointer group">
+          <input class="hidden peer" name="runner" type="radio"/>
+          <div class="h-full bg-surface-low peer-checked:bg-white peer-checked:ring-2 peer-checked:ring-primary p-4 rounded-xl flex flex-col gap-2 group-hover:bg-surface-high transition-all">
+            <span class="text-sm font-bold">Auto</span>
+            <span class="text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">Recommended</span>
+            <div class="mt-auto pt-2 border-t border-outline-variant/15"><span class="text-[11px] font-bold text-on-surface-variant">—</span></div>
+          </div>
+        </label>
+        <label class="cursor-pointer group">
+          <input checked class="hidden peer" name="runner" type="radio"/>
+          <div class="h-full bg-surface-low peer-checked:bg-white peer-checked:ring-2 peer-checked:ring-primary p-4 rounded-xl flex flex-col gap-2 group-hover:bg-surface-high transition-all">
+            <div class="flex items-center justify-between"><span class="text-sm font-bold">Demo</span><span class="w-2 h-2 rounded-full bg-emerald-500"></span></div>
+            <span class="text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">Built-in</span>
+            <div class="mt-auto pt-2 border-t border-outline-variant/15"><span class="text-[11px] font-bold text-emerald-600">Available</span></div>
+          </div>
+        </label>
+        <label class="cursor-pointer group">
+          <input class="hidden peer" name="runner" type="radio"/>
+          <div class="h-full bg-surface-low peer-checked:bg-white peer-checked:ring-2 peer-checked:ring-primary p-4 rounded-xl flex flex-col gap-2 group-hover:bg-surface-high transition-all">
+            <div class="flex items-center justify-between"><span class="text-sm font-bold">Codex CLI</span><span class="w-2 h-2 rounded-full bg-slate-300"></span></div>
+            <span class="text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">External</span>
+            <div class="mt-auto pt-2 border-t border-outline-variant/15"><span class="text-[11px] font-bold text-slate-400">Not found</span></div>
+          </div>
+        </label>
+        <label class="cursor-pointer group">
+          <input class="hidden peer" name="runner" type="radio"/>
+          <div class="h-full bg-surface-low peer-checked:bg-white peer-checked:ring-2 peer-checked:ring-primary p-4 rounded-xl flex flex-col gap-2 group-hover:bg-surface-high transition-all">
+            <div class="flex items-center justify-between"><span class="text-sm font-bold">Claude CLI</span><span class="w-2 h-2 rounded-full bg-emerald-500"></span></div>
+            <span class="text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">External</span>
+            <div class="mt-auto pt-2 border-t border-outline-variant/15"><span class="text-[11px] font-bold text-emerald-600">Available</span></div>
+          </div>
+        </label>
+      </div>
+    </section>
+
+    <!-- 3. General -->
+    <section class="space-y-4">
+      <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined text-primary">tune</span>
+        <h2 class="text-lg font-semibold tracking-tight">General</h2>
+      </div>
+      <div class="flex items-center justify-between bg-surface-low p-5 rounded-xl">
+        <div>
+          <p class="text-sm font-semibold">Start at login</p>
+          <p class="text-xs text-on-surface-variant">Launch QuietClaw when your system starts</p>
+        </div>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input class="sr-only peer" type="checkbox"/>
+          <div class="w-11 h-6 bg-surface-highest rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+        </label>
+      </div>
+      <div class="bg-surface-low p-5 rounded-xl">
+        <button class="border border-outline-variant text-primary px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-surface-high transition-all active:scale-95 flex items-center gap-2">
+          <span class="material-symbols-outlined text-[18px]">system_update</span>
+          Check for Updates
+        </button>
+      </div>
+    </section>
+
+    <!-- 4. Legal -->
+    <section class="bg-surface-low p-6 rounded-xl flex items-center justify-between">
+      <div>
+        <p class="text-[10px] text-on-surface-variant uppercase font-bold tracking-widest mb-1">Legal</p>
+        <p class="text-sm font-medium">Terms accepted on 2026-03-22 (desktop-pack-v1)</p>
+      </div>
+      <button class="flex items-center gap-2 text-primary font-bold text-[11px] uppercase tracking-widest hover:bg-white px-4 py-2 rounded-lg transition-all active:scale-95">
+        Review terms <span class="material-symbols-outlined text-[16px]">open_in_new</span>
+      </button>
+    </section>
+
+    <!-- 5. Data & Diagnostics -->
+    <section class="space-y-4 pb-8">
+      <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined text-primary">analytics</span>
+        <h2 class="text-lg font-semibold tracking-tight">Data & Diagnostics</h2>
+      </div>
+      <div class="flex flex-wrap gap-3">
+        <button class="border border-outline-variant text-on-surface-variant px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-surface-high transition-all active:scale-95 flex items-center gap-2">
+          <span class="material-symbols-outlined text-[18px]">delete_sweep</span> Clear Activity Log
+        </button>
+        <button class="border border-outline-variant text-on-surface-variant px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-surface-high transition-all active:scale-95 flex items-center gap-2">
+          <span class="material-symbols-outlined text-[18px]">no_accounts</span> Clear Saved Connection
+        </button>
+        <button class="border border-outline-variant text-primary px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-surface-high transition-all active:scale-95 flex items-center gap-2">
+          <span class="material-symbols-outlined text-[18px]">download</span> Export Diagnostics
+        </button>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer class="w-full bg-white/50 border-t border-outline-variant/15 flex justify-center items-center px-6 py-3">
+  <span class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant/40">QuietClaw v1.0.0</span>
+</footer>
+
+<script>
+function toggleToken() {
+  const f = document.getElementById('tokenField'), i = document.getElementById('tokenIcon');
+  if (f.type === 'password') { f.type = 'text'; i.textContent = 'visibility_off'; }
+  else { f.type = 'password'; i.textContent = 'visibility'; }
+}
+</script>
+</body>
+</html>

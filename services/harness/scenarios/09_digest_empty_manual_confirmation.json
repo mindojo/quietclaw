@@ -1,0 +1,34 @@
+{
+  "id": "09_digest_empty_manual_confirmation",
+  "description": "A manual test with no meaningful messages sends the empty confirmation summary.",
+  "layer": "engine",
+  "initial_state": {
+    "monitor": {
+      "enabled": true,
+      "runner_preference": "demo",
+      "watched_groups": [
+        { "group_id": "grp_quiet", "daily_summary": true }
+      ]
+    }
+  },
+  "events": [
+    {
+      "type": "message",
+      "mode": "backfill",
+      "at": "2026-03-27T06:00:00.000Z",
+      "conversation_id": "grp_quiet",
+      "conversation_title": "Quiet Group",
+      "sender_id": "sender_a",
+      "sender_name": "Alex",
+      "text": null
+    }
+  ],
+  "actions": [
+    { "type": "manual_test_summary" }
+  ],
+  "assertions": [
+    { "type": "outbound_count", "channel": "telegram", "equals": 1 },
+    { "type": "outbound_contains", "channel": "telegram", "all_of": ["QuietClaw test summary", "Manual summary test completed."] },
+    { "type": "activity_contains_kind", "kind": "manual_test_sent" }
+  ]
+}

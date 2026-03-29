@@ -1,0 +1,30 @@
+{
+  "id": "05_noise_message_no_alert",
+  "description": "A low-signal live message is skipped before urgency inference.",
+  "layer": "engine",
+  "initial_state": {
+    "monitor": {
+      "enabled": true,
+      "runner_preference": "demo",
+      "watched_groups": [
+        { "group_id": "grp_school", "forward_urgent": true }
+      ]
+    }
+  },
+  "events": [
+    {
+      "type": "message",
+      "mode": "live",
+      "at": "2026-03-27T10:20:00.000Z",
+      "conversation_id": "grp_school",
+      "conversation_title": "School Chat",
+      "sender_id": "sender_parent",
+      "sender_name": "Parent One",
+      "text": "ok thanks"
+    }
+  ],
+  "assertions": [
+    { "type": "no_outbound" },
+    { "type": "activity_contains_kind", "kind": "urgent_skipped" }
+  ]
+}

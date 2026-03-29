@@ -1,0 +1,35 @@
+{
+  "id": "04_hidden_group_stays_hidden",
+  "description": "A hidden group stays excluded after observed traffic.",
+  "layer": "daemon",
+  "initial_state": {
+    "hidden_groups": ["grp_hidden"]
+  },
+  "events": [
+    {
+      "type": "message",
+      "mode": "live",
+      "at": "2026-03-27T10:15:00.000Z",
+      "conversation_id": "grp_hidden",
+      "conversation_title": "Hidden Group",
+      "sender_id": "sender_hidden",
+      "sender_name": "Hari",
+      "text": "You should not see this group."
+    },
+    {
+      "type": "message",
+      "mode": "live",
+      "at": "2026-03-27T10:16:00.000Z",
+      "conversation_id": "grp_visible",
+      "conversation_title": "Visible Group",
+      "sender_id": "sender_visible",
+      "sender_name": "Vera",
+      "text": "Visible traffic."
+    }
+  ],
+  "assertions": [
+    { "type": "visible_group_count", "equals": 1 },
+    { "type": "visible_groups_exclude", "group_id": "grp_hidden" },
+    { "type": "visible_groups_include", "group_id": "grp_visible" }
+  ]
+}

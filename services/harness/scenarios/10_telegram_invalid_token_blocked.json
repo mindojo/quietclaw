@@ -1,0 +1,18 @@
+{
+  "id": "10_telegram_invalid_token_blocked",
+  "description": "Invalid Telegram credentials stay fail-closed.",
+  "layer": "telegram",
+  "initial_state": {
+    "fake_bot": {
+      "get_me_error": "Telegram bot verification failed."
+    }
+  },
+  "events": [],
+  "actions": [
+    { "type": "set_bot_token", "token": "bad-token" },
+    { "type": "wait", "ms": 20 }
+  ],
+  "assertions": [
+    { "type": "telegram_state", "equals": "not_configured" }
+  ]
+}

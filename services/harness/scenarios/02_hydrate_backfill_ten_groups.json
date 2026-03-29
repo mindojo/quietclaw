@@ -1,0 +1,20 @@
+{
+  "id": "02_hydrate_backfill_ten_groups",
+  "description": "Backfill across ten groups hydrates a visible catalog of ten groups.",
+  "layer": "daemon",
+  "events": [
+    { "type": "message", "mode": "backfill", "at": "2026-03-26T00:00:00.000Z", "conversation_id": "grp_01", "conversation_title": "Group 01", "sender_id": "s01", "sender_name": "S01", "text": "Message 01" },
+    { "type": "message", "mode": "backfill", "at": "2026-03-26T01:00:00.000Z", "conversation_id": "grp_02", "conversation_title": "Group 02", "sender_id": "s02", "sender_name": "S02", "text": "Message 02" },
+    { "type": "message", "mode": "backfill", "at": "2026-03-26T02:00:00.000Z", "conversation_id": "grp_03", "conversation_title": "Group 03", "sender_id": "s03", "sender_name": "S03", "text": "Message 03" },
+    { "type": "message", "mode": "backfill", "at": "2026-03-26T03:00:00.000Z", "conversation_id": "grp_04", "conversation_title": "Group 04", "sender_id": "s04", "sender_name": "S04", "text": "Message 04" },
+    { "type": "message", "mode": "backfill", "at": "2026-03-26T04:00:00.000Z", "conversation_id": "grp_05", "conversation_title": "Group 05", "sender_id": "s05", "sender_name": "S05", "text": "Message 05" },
+    { "type": "message", "mode": "backfill", "at": "2026-03-26T05:00:00.000Z", "conversation_id": "grp_06", "conversation_title": "Group 06", "sender_id": "s06", "sender_name": "S06", "text": "Message 06" },
+    { "type": "message", "mode": "backfill", "at": "2026-03-26T06:00:00.000Z", "conversation_id": "grp_07", "conversation_title": "Group 07", "sender_id": "s07", "sender_name": "S07", "text": "Message 07" },
+    { "type": "message", "mode": "backfill", "at": "2026-03-26T07:00:00.000Z", "conversation_id": "grp_08", "conversation_title": "Group 08", "sender_id": "s08", "sender_name": "S08", "text": "Message 08" },
+    { "type": "message", "mode": "backfill", "at": "2026-03-26T08:00:00.000Z", "conversation_id": "grp_09", "conversation_title": "Group 09", "sender_id": "s09", "sender_name": "S09", "text": "Message 09" },
+    { "type": "message", "mode": "backfill", "at": "2026-03-26T09:00:00.000Z", "conversation_id": "grp_10", "conversation_title": "Group 10", "sender_id": "s10", "sender_name": "S10", "text": "Message 10" }
+  ],
+  "assertions": [
+    { "type": "visible_group_count", "equals": 10 }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "name": "@quietclaw/harness",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "test": "echo harness-ok",
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@quietclaw/gateway-contract": "*",
+    "@quietclaw/ingest-contract": "1.0.0",
+    "uuid": "^11.1.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "tsx": "^4.20.5"
+  }
+}

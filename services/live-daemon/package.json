@@ -1,0 +1,27 @@
+{
+  "name": "@quietclaw/live-daemon",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "test": "echo test-ok",
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@quietclaw/gateway-contract": "1.0.0",
+    "@quietclaw/ingest-contract": "1.0.0",
+    "express": "^5.1.0",
+    "uuid": "^11.1.0",
+    "ws": "^8.18.3",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/ws": "^8.18.1",
+    "tsx": "^4.20.5"
+  }
+}

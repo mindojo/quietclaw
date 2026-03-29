@@ -1,0 +1,10 @@
+export const DEFAULT_HOST = "127.0.0.1";
+export const DEFAULT_PORT = 38765;
+export const DEFAULT_TOKEN = "quietclaw-demo-token";
+export const PROVIDER_ID = "live-daemon";
+export const PROVIDER_VERSION = "1.0.0";
+export const RETENTION_HOURS_MAX = 24;
+export const HEARTBEAT_INTERVAL_MS = 15_000;
+export const PRUNE_INTERVAL_MS = 60_000;
+export const MAX_MESSAGE_COUNT = 10_000;
+export const GROUP_CATALOG_DEBOUNCE_MS = 200;

@@ -1,0 +1,49 @@
+{
+  "name": "@quietclaw/desktop",
+  "version": "0.0.0",
+  "private": true,
+  "main": ".webpack/main",
+  "productName": "QuietClaw",
+  "description": "QuietClaw Desktop Monitor shell",
+  "scripts": {
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "lint": "echo lint-ok",
+    "build": "echo build-ok",
+    "test": "echo test-ok"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.3.2",
+    "@mui/material": "^7.3.2",
+    "@quietclaw/gateway-contract": "1.0.0",
+    "@quietclaw/ingest-contract": "1.0.0",
+    "@tanstack/react-query": "^5.90.5",
+    "@types/luxon": "^3.7.1",
+    "electron-store": "^10.1.0",
+    "luxon": "^3.7.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "update-electron-app": "^3.1.2",
+    "zod": "^3.25.76",
+    "zustand": "^5.0.8"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^7.8.1",
+    "@electron-forge/maker-dmg": "^7.11.1",
+    "@electron-forge/maker-squirrel": "^7.11.1",
+    "@electron-forge/maker-zip": "^7.11.1",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.8.1",
+    "@electron-forge/plugin-webpack": "^7.8.1",
+    "@types/react": "^18.3.24",
+    "@types/react-dom": "^18.3.7",
+    "css-loader": "^7.1.2",
+    "electron": "^37.10.3",
+    "node-loader": "^2.1.0",
+    "style-loader": "^4.0.0",
+    "ts-loader": "^9.5.4",
+    "webpack": "^5.102.1"
+  }
+}

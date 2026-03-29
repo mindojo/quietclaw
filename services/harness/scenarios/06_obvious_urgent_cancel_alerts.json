@@ -1,0 +1,31 @@
+{
+  "id": "06_obvious_urgent_cancel_alerts",
+  "description": "An obvious urgent cancellation triggers a Telegram urgent alert.",
+  "layer": "engine",
+  "initial_state": {
+    "monitor": {
+      "enabled": true,
+      "runner_preference": "demo",
+      "watched_groups": [
+        { "group_id": "grp_school", "forward_urgent": true }
+      ]
+    }
+  },
+  "events": [
+    {
+      "type": "message",
+      "mode": "live",
+      "at": "2026-03-27T10:30:00.000Z",
+      "conversation_id": "grp_school",
+      "conversation_title": "School Chat",
+      "sender_id": "sender_admin",
+      "sender_name": "School Office",
+      "text": "Urgent: pickup now, school bus cancelled."
+    }
+  ],
+  "assertions": [
+    { "type": "outbound_count", "channel": "telegram", "equals": 1 },
+    { "type": "outbound_contains", "channel": "telegram", "all_of": ["Urgent alert from School Chat", "pickup now", "cancelled"] },
+    { "type": "activity_contains_kind", "kind": "urgent_queued" }
+  ]
+}

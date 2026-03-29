@@ -1,0 +1,64 @@
+{
+  "id": "08_digest_useful_day_sends",
+  "description": "A meaningful day of messages produces a manual test digest.",
+  "layer": "engine",
+  "initial_state": {
+    "monitor": {
+      "enabled": true,
+      "runner_preference": "demo",
+      "watched_groups": [
+        { "group_id": "grp_building", "daily_summary": true }
+      ]
+    }
+  },
+  "events": [
+    {
+      "type": "message",
+      "mode": "backfill",
+      "at": "2026-03-27T07:00:00.000Z",
+      "conversation_id": "grp_building",
+      "conversation_title": "Building Updates",
+      "sender_id": "sender_mgr",
+      "sender_name": "Manager",
+      "text": "Maintenance schedule changed for the elevator."
+    },
+    {
+      "type": "message",
+      "mode": "backfill",
+      "at": "2026-03-27T08:00:00.000Z",
+      "conversation_id": "grp_building",
+      "conversation_title": "Building Updates",
+      "sender_id": "sender_finance",
+      "sender_name": "Finance Desk",
+      "text": "Payment deadline moved to Friday."
+    },
+    {
+      "type": "message",
+      "mode": "backfill",
+      "at": "2026-03-27T09:00:00.000Z",
+      "conversation_id": "grp_building",
+      "conversation_title": "Building Updates",
+      "sender_id": "sender_office",
+      "sender_name": "Office Admin",
+      "text": "Meeting confirmed with the contractor tomorrow."
+    },
+    {
+      "type": "message",
+      "mode": "backfill",
+      "at": "2026-03-27T10:00:00.000Z",
+      "conversation_id": "grp_building",
+      "conversation_title": "Building Updates",
+      "sender_id": "sender_mgr",
+      "sender_name": "Manager",
+      "text": "School shuttle schedule change is now final."
+    }
+  ],
+  "actions": [
+    { "type": "manual_test_summary" }
+  ],
+  "assertions": [
+    { "type": "outbound_count", "channel": "telegram", "equals": 1 },
+    { "type": "outbound_contains", "channel": "telegram", "all_of": ["Building Updates", "meaningful updates across Building Updates"] },
+    { "type": "activity_contains_kind", "kind": "manual_test_sent" }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "id": "03_group_reorders_on_new_message",
+  "description": "A newer message reorders the visible group list.",
+  "layer": "daemon",
+  "events": [
+    {
+      "type": "message",
+      "mode": "backfill",
+      "at": "2026-03-27T08:00:00.000Z",
+      "conversation_id": "grp_alpha",
+      "conversation_title": "Alpha Ops",
+      "sender_id": "sender_a",
+      "sender_name": "Ana",
+      "text": "Morning check-in."
+    },
+    {
+      "type": "message",
+      "mode": "live",
+      "at": "2026-03-27T09:00:00.000Z",
+      "conversation_id": "grp_beta",
+      "conversation_title": "Beta Ops",
+      "sender_id": "sender_b",
+      "sender_name": "Ben",
+      "text": "Beta update."
+    },
+    {
+      "type": "message",
+      "mode": "live",
+      "at": "2026-03-27T10:00:00.000Z",
+      "conversation_id": "grp_alpha",
+      "conversation_title": "Alpha Ops",
+      "sender_id": "sender_a",
+      "sender_name": "Ana",
+      "text": "Alpha latest update."
+    }
+  ],
+  "assertions": [
+    { "type": "group_order", "first": "grp_alpha" }
+  ]
+}

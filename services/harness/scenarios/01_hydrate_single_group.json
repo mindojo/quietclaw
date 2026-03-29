@@ -1,0 +1,21 @@
+{
+  "id": "01_hydrate_single_group",
+  "description": "One observed backfill message creates one visible group.",
+  "layer": "daemon",
+  "events": [
+    {
+      "type": "message",
+      "mode": "backfill",
+      "at": "2026-03-27T08:00:00.000Z",
+      "conversation_id": "grp_family",
+      "conversation_title": "Family Logistics",
+      "sender_id": "sender_ava",
+      "sender_name": "Ava",
+      "text": "School pickup moved to 3pm."
+    }
+  ],
+  "assertions": [
+    { "type": "visible_group_count", "equals": 1 },
+    { "type": "visible_groups_include", "group_id": "grp_family" }
+  ]
+}

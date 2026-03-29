@@ -1,0 +1,28 @@
+node_modules
+dist
+out
+.webpack
+.DS_Store
+coverage
+test-results
+playwright-report
+
+# Secrets
+.env
+.env.*
+
+# Claude Code local settings (contains machine-specific paths)
+.claude/
+
+# Workstream artifacts (build/review state)
+.workstream/
+
+# Analysis packs (generated, not source)
+pack/
+
+# Reports (generated)
+reports/
+
+# Playbooks / specs (local design docs, not source)
+quietclaw_*.md
+quietclaw_*.html

@@ -1,0 +1,40 @@
+{
+  "id": "07_urgent_duplicate_suppressed",
+  "description": "A duplicate urgent trigger during cooldown is suppressed.",
+  "layer": "engine",
+  "initial_state": {
+    "monitor": {
+      "enabled": true,
+      "runner_preference": "demo",
+      "watched_groups": [
+        { "group_id": "grp_ops", "forward_urgent": true }
+      ]
+    }
+  },
+  "events": [
+    {
+      "type": "message",
+      "mode": "live",
+      "at": "2026-03-27T10:40:00.000Z",
+      "conversation_id": "grp_ops",
+      "conversation_title": "Ops Bridge",
+      "sender_id": "sender_lead",
+      "sender_name": "Ops Lead",
+      "text": "Medical issue now at the north gate."
+    },
+    {
+      "type": "message",
+      "mode": "live",
+      "at": "2026-03-27T10:41:00.000Z",
+      "conversation_id": "grp_ops",
+      "conversation_title": "Ops Bridge",
+      "sender_id": "sender_lead",
+      "sender_name": "Ops Lead",
+      "text": "Medical issue now at the north gate."
+    }
+  ],
+  "assertions": [
+    { "type": "outbound_count", "channel": "telegram", "equals": 1 },
+    { "type": "activity_contains_kind", "kind": "urgent_skipped" }
+  ]
+}

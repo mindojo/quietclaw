@@ -1,0 +1,23 @@
+{
+  "id": "12_telegram_ready_after_start",
+  "description": "A /start update transitions Telegram onboarding to ready.",
+  "layer": "telegram",
+  "initial_state": {
+    "fake_bot": {
+      "username": "quietclaw_test_bot",
+      "updates": [
+        { "update_id": 1, "chat_id": 777, "text": "/start" }
+      ]
+    }
+  },
+  "events": [],
+  "actions": [
+    { "type": "set_bot_token", "token": "good-token" },
+    { "type": "wait", "ms": 20 }
+  ],
+  "assertions": [
+    { "type": "telegram_state", "equals": "ready" },
+    { "type": "telegram_chat_id", "equals": 777 },
+    { "type": "telegram_bot_username", "equals": "quietclaw_test_bot" }
+  ]
+}
