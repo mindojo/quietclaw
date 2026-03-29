@@ -379,30 +379,28 @@ export function registerAppIpc(runtime: DesktopAppRuntime): void {
     }
   });
   ipcMain.handle(IPC_CHANNELS.openLegalDocument, async (_event, documentId: LegalDocumentId) => {
-    // Try to open the local file first (works in development)
-    const localPath = resolveLegalDocumentPath(documentId);
-    try {
-      await import("node:fs/promises").then((fs) => fs.access(localPath));
-      const result = await shell.openPath(localPath);
-      if (!result) return;
-    } catch {
-      // File not found locally (packaged app) — fall through
+    // Try multiple candidate roots to find docs/legal/
+    const { existsSync } = await import("node:fs");
+    const candidateRoots = [
+      process.cwd(),
+      app.getAppPath(),
+      path.resolve(app.getAppPath(), ".."),
+      path.resolve(app.getAppPath(), "..", ".."),
+      path.resolve(app.getAppPath(), "..", "..", "..", ".."),
+      // Electron Forge packaged app: the .asar is deep inside .app bundle
+      path.resolve(app.getAppPath(), "..", "..", "..", "..", "..", ".."),
+    ];
+
+    for (const root of candidateRoots) {
+      const candidate = path.resolve(root, "docs", "legal", documentId);
+      if (existsSync(candidate)) {
+        await shell.openPath(candidate);
+        return;
+      }
     }
-    // Fallback: open in GitHub (replace with actual repo URL when published)
-    const docMap: Record<string, string> = {
-      "TERMS.md": "Terms of Use",
-      "PRIVACY.md": "Privacy Notice",
-      "RISK_DISCLOSURE.md": "Risk Disclosure",
-      "RETENTION_AND_DELETION.md": "Retention and Deletion",
-    };
-    // For now, show a dialog with the document name since we can't resolve the file
-    const { dialog: dialogModule } = await import("electron");
-    await dialogModule.showMessageBox({
-      type: "info",
-      title: docMap[documentId] ?? documentId,
-      message: `The document "${docMap[documentId] ?? documentId}" is available at docs/legal/${documentId} in the QuietClaw source repository.`,
-      buttons: ["OK"],
-    });
+
+    // Fallback: open the docs/legal/ folder in the OS file manager
+    await shell.openExternal(`https://github.com/quietclaw/quietclaw/blob/main/docs/legal/${documentId}`);
   });
   ipcMain.handle(IPC_CHANNELS.getTelegramStatus, async () => runtime.getTelegramStatus());
   ipcMain.handle(IPC_CHANNELS.getDaemonStatus, async () => runtime.getDaemonStatus());

@@ -442,15 +442,15 @@ export function OnboardingWizard({
           </Box>
 
           <Stack spacing={0.25}>
-            <label className="wizard-check"><Checkbox size="small" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} /><span style={{ fontSize: 13 }}>I accept the Terms of Use.</span></label>
-            <label className="wizard-check"><Checkbox size="small" checked={acknowledgedPrivacy} onChange={(e) => setAcknowledgedPrivacy(e.target.checked)} /><span style={{ fontSize: 13 }}>I have read the Privacy Notice.</span></label>
-            <label className="wizard-check"><Checkbox size="small" checked={acknowledgedRisk} onChange={(e) => setAcknowledgedRisk(e.target.checked)} /><span style={{ fontSize: 13 }}>I understand QuietClaw is experimental — privacy, security, and correctness are not guaranteed.</span></label>
-            <label className="wizard-check"><Checkbox size="small" checked={acknowledgedRetention} onChange={(e) => setAcknowledgedRetention(e.target.checked)} /><span style={{ fontSize: 13 }}>Local data expires after ~24h but may persist longer.</span></label>
+            <label className="wizard-check"><Checkbox size="small" sx={{ p: 0.5 }} checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} /><span style={{ fontSize: 13 }}>I accept the Terms of Use.</span></label>
+            <label className="wizard-check"><Checkbox size="small" sx={{ p: 0.5 }} checked={acknowledgedPrivacy} onChange={(e) => setAcknowledgedPrivacy(e.target.checked)} /><span style={{ fontSize: 13 }}>I have read the Privacy Notice.</span></label>
+            <label className="wizard-check"><Checkbox size="small" sx={{ p: 0.5 }} checked={acknowledgedRisk} onChange={(e) => setAcknowledgedRisk(e.target.checked)} /><span style={{ fontSize: 13 }}>I understand QuietClaw is experimental — privacy, security, and correctness are not guaranteed.</span></label>
+            <label className="wizard-check"><Checkbox size="small" sx={{ p: 0.5 }} checked={acknowledgedRetention} onChange={(e) => setAcknowledgedRetention(e.target.checked)} /><span style={{ fontSize: 13 }}>Local data expires after ~24h but may persist longer.</span></label>
           </Stack>
 
           <Stack spacing={0.25}>
-            <label className="wizard-check optional"><Checkbox size="small" checked={analyticsOptIn} onChange={(e) => setAnalyticsOptIn(e.target.checked)} /><span style={{ fontSize: 12, color: "var(--text-secondary)" }}>Share anonymous usage analytics.</span></label>
-            <label className="wizard-check optional"><Checkbox size="small" checked={crashPrepOptIn} onChange={(e) => setCrashPrepOptIn(e.target.checked)} /><span style={{ fontSize: 12, color: "var(--text-secondary)" }}>Allow crash reports to be prepared for review.</span></label>
+            <label className="wizard-check optional"><Checkbox size="small" sx={{ p: 0.5 }} checked={analyticsOptIn} onChange={(e) => setAnalyticsOptIn(e.target.checked)} /><span style={{ fontSize: 12, color: "var(--text-secondary)" }}>Share anonymous usage analytics.</span></label>
+            <label className="wizard-check optional"><Checkbox size="small" sx={{ p: 0.5 }} checked={crashPrepOptIn} onChange={(e) => setCrashPrepOptIn(e.target.checked)} /><span style={{ fontSize: 12, color: "var(--text-secondary)" }}>Allow crash reports to be prepared for review.</span></label>
           </Stack>
 
         <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>
@@ -971,6 +971,23 @@ export function OnboardingWizard({
           </button>
         </Box>
       </Stack>
+    );
+  }
+
+  // Step 0 (legal gate) uses full window — no centered card
+  if (step === 0) {
+    return (
+      <Box
+        sx={{
+          height: "100%",
+          overflow: "auto",
+          background: "var(--bg-primary)",
+          px: { xs: 3, md: 5 },
+          py: { xs: 3, md: 4 },
+        }}
+      >
+        {content}
+      </Box>
     );
   }
 
