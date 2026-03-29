@@ -59,6 +59,53 @@ Open Settings, create a bot with BotFather, paste the bot token, click **Verify*
 
 Click **Send Test Summary** to send a test digest to Telegram.
 
+## Experimental status
+
+QuietClaw is experimental local-first workflow software. It is designed to process prompts, context, and working data on your device by default.
+
+QuietClaw can also be configured to use third-party model providers selected by the user. When a provider is enabled, selected prompts, attachments, and context may be sent directly to that provider under the user's configuration and subject to that provider's own terms and privacy practices.
+
+QuietClaw is provided on an **as-is** and **as-available** basis, without warranties or guarantees of security, privacy, availability, accuracy, or fitness for any particular purpose. Use it carefully, especially with personal, confidential, regulated, or otherwise sensitive data.
+
+## Privacy and data flow
+
+QuietClaw is designed to be local-first:
+
+- local processing is the default mode;
+- third-party provider use is optional;
+- prompts and attachments are not intended to be routed through a QuietClaw-operated model relay by default;
+- optional features such as updates, telemetry, crash reporting, documentation fetches, or support submission may involve separate network requests if enabled or used.
+
+If you enable a third-party provider, selected content may be sent directly to that provider. That content can include personal data, confidential business information, or other sensitive material if you choose to provide it.
+
+Read before use:
+
+- [Terms of Use](docs/legal/TERMS.md)
+- [Privacy Notice](docs/legal/PRIVACY.md)
+- [Risk Disclosure](docs/legal/RISK_DISCLOSURE.md)
+- [Retention and Deletion](docs/legal/RETENTION_AND_DELETION.md)
+- [Third-Party Providers](docs/legal/THIRD_PARTY_PROVIDERS.md)
+
+## Security limitations
+
+QuietClaw is designed with privacy and security in mind, but no local or networked software can guarantee confidentiality or prevent every failure mode.
+
+Known classes of risk include:
+
+- disclosure of prompts, files, or metadata to a third-party provider if enabled;
+- prompt injection or malicious instructions embedded in user-provided or retrieved content;
+- incorrect, misleading, or unsafe model output;
+- local compromise through malware, device sharing, debugging, backups, logs, caches, crash files, or operating-system behavior;
+- unknown or emerging risks in LLM-integrated systems.
+
+Do not use QuietClaw with any data or workflow unless you are comfortable evaluating and accepting these risks yourself.
+
+## Retention target
+
+QuietClaw is designed to expire certain local working data after approximately 24 hours.
+
+This is a design target, not a guarantee. Copies may persist longer because of device state, hibernation, OS caches, logs, crash files, backups, debugging artifacts, or software error. Users should assume that local deletion may be delayed or incomplete in some circumstances.
+
 ## Key Features
 
 - **Single-page UI** — Telegram setup, watched group checkboxes (Daily Summary / Forward Urgent), digest scheduling, activity log

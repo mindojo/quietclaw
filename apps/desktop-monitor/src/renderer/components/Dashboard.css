@@ -212,6 +212,26 @@
   flex-wrap: wrap;
 }
 
+.settings-button-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.settings-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.settings-check input {
+  width: 16px;
+  height: 16px;
+}
+
 .dashboard-button {
   display: inline-flex;
   align-items: center;

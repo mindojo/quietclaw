@@ -3,6 +3,8 @@ export function substituteTemplate(
   variables: Record<string, string>,
 ): string {
   return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
-    return key in variables ? variables[key] : match;
+    return Object.prototype.hasOwnProperty.call(variables, key)
+      ? variables[key] ?? match
+      : match;
   });
 }

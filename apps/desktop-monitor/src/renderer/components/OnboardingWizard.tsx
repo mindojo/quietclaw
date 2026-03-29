@@ -11,15 +11,20 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type {
   AiTestResult,
   AiProviderDetection,
+  LegalAcceptanceRecord,
+  LegalDocumentId,
   TelegramStatus,
   TelegramTokenResult,
 } from "../../preload/api";
+import { LEGAL_BUNDLE_VERSION } from "../../main/config/schema";
 import "./OnboardingWizard.css";
 
 type OnboardingWizardProps = {
+  appVersion: string;
+  legal: LegalAcceptanceRecord;
   legalAccepted: boolean;
   telegramStatus: TelegramStatus;
-  onLegalAccepted: () => void;
+  onLegalAccepted: (record: LegalAcceptanceRecord) => void;
   onTelegramTokenSet: (token: string) => Promise<TelegramTokenResult>;
   onComplete: () => void;
 };
@@ -28,16 +33,6 @@ type StepLabel = 1 | 2 | 3 | 4 | 5;
 type ProviderId = "claude" | "codex";
 type ModelId = "haiku" | "sonnet" | "opus" | "custom";
 
-const legalTerms = [
-  "This app is for educational and experimental use.",
-  "You are responsible for how monitoring, summaries, and urgent forwards are used.",
-  "The local gateway may expose sensitive local transport data on your machine.",
-  "This app can forward urgent messages and summaries into a target group.",
-  "You must ensure you have the right to monitor, summarize, or forward those messages.",
-  "The app only sees groups the gateway exposes, and some groups may be missing.",
-  "This app does not guarantee completeness, delivery, or privacy.",
-];
-
 const defaultTelegramStatus: TelegramStatus = {
   onboardingState: "not_configured",
   botUsername: null,
@@ -45,7 +40,22 @@ const defaultTelegramStatus: TelegramStatus = {
   lastVerifiedAt: null,
 };
 
+const emptyAiProviders: AiProviderDetection = {
+  claude: false,
+  codex: false,
+  claudeAuth: {
+    loggedIn: false,
+    detail: "Not installed",
+  },
+  codexAuth: {
+    loggedIn: false,
+    detail: "Not installed",
+  },
+};
+
 export function OnboardingWizard({
+  appVersion,
+  legal,
   legalAccepted,
   telegramStatus,
   onLegalAccepted,
@@ -64,13 +74,21 @@ export function OnboardingWizard({
   const [customModelId, setCustomModelId] = useState("");
   const [testResult, setTestResult] = useState<AiTestResult | null>(null);
   const [testRunning, setTestRunning] = useState(false);
-  const [legalChecked, setLegalChecked] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [acknowledgedPrivacy, setAcknowledgedPrivacy] = useState(false);
+  const [acknowledgedRisk, setAcknowledgedRisk] = useState(false);
+  const [acknowledgedRetention, setAcknowledgedRetention] = useState(false);
+  const [analyticsOptIn, setAnalyticsOptIn] = useState(legal.optionalChoices.analyticsOptIn);
+  const [crashPrepOptIn, setCrashPrepOptIn] = useState(legal.optionalChoices.crashPrepOptIn);
   const completionTriggeredRef = useRef(false);
 
   const api = (window as unknown as { monitorApp: import("../../preload/api").MonitorAppApi }).monitorApp;
 
   const openExternal = (url: string) => {
     void api.openExternal(url);
+  };
+  const openLegalDocument = (documentId: LegalDocumentId) => {
+    void api.openLegalDocument(documentId);
   };
 
   const safeTelegramStatus = telegramStatus ?? defaultTelegramStatus;
@@ -84,6 +102,40 @@ export function OnboardingWizard({
       setStep(1);
     }
   }, [legalAccepted, step]);
+
+  function buildLegalRecord(overrides?: Partial<LegalAcceptanceRecord>): LegalAcceptanceRecord {
+    return {
+      ...legal,
+      legalBundleVersion: LEGAL_BUNDLE_VERSION,
+      appVersion,
+      acceptedAt: legal.acceptedAt ?? new Date().toISOString(),
+      locale: navigator.language ?? null,
+      platform: navigator.platform ?? null,
+      docs: {
+        termsVersion: LEGAL_BUNDLE_VERSION,
+        privacyVersion: LEGAL_BUNDLE_VERSION,
+        riskDisclosureVersion: LEGAL_BUNDLE_VERSION,
+        retentionNoticeVersion: LEGAL_BUNDLE_VERSION,
+      },
+      requiredChecks: {
+        acceptedTerms,
+        acknowledgedPrivacy,
+        acknowledgedRisk,
+        acknowledgedRetentionCaveat: acknowledgedRetention,
+      },
+      optionalChoices: {
+        analyticsOptIn,
+        crashPrepOptIn,
+      },
+      providerConsents: legal.providerConsents,
+      ...overrides,
+    };
+  }
+
+  const requiredChecksComplete = acceptedTerms &&
+    acknowledgedPrivacy &&
+    acknowledgedRisk &&
+    acknowledgedRetention;
 
   useEffect(() => {
     if (step !== 5) {
@@ -117,7 +169,7 @@ export function OnboardingWizard({
         });
       } catch {
         if (!cancelled) {
-          setAiProviders({ claude: false, codex: false });
+          setAiProviders(emptyAiProviders);
           setSelectedProvider(null);
         }
       }
@@ -201,7 +253,26 @@ export function OnboardingWizard({
       return;
     }
 
+    const acceptedAt = new Date().toISOString();
+    const providerConsents = [
+      ...legal.providerConsents.filter((entry) => entry.providerId !== selectedProvider),
+      {
+        providerId: selectedProvider,
+        providerNoticeVersion: LEGAL_BUNDLE_VERSION,
+        acceptedAt,
+      },
+    ];
+
+    onLegalAccepted(buildLegalRecord({
+      providerConsents,
+      optionalChoices: {
+        analyticsOptIn,
+        crashPrepOptIn,
+      },
+    }));
     await window.monitorApp.saveSettings({
+      analyticsOptIn,
+      crashPrepOptIn,
       runnerPreference: selectedProvider === "claude" ? "claude" : "codex",
     });
     setStep(6);
@@ -351,54 +422,100 @@ export function OnboardingWizard({
 
   if (step === 0) {
     content = (
-      <Stack spacing={3}>
-        <Stack spacing={1}>
-          <Typography sx={{ fontSize: 12, color: "var(--text-tertiary)", letterSpacing: 0.4 }}>
+        <Stack spacing={3}>
+          <Stack spacing={1}>
+            <Typography sx={{ fontSize: 12, color: "var(--text-tertiary)", letterSpacing: 0.4 }}>
             STEP 0 OF 5
           </Typography>
           <Typography sx={{ fontSize: { xs: 28, md: 34 }, fontWeight: 600 }}>
-            Before you continue
+            Before you start
           </Typography>
-          <Typography color="text.secondary">
-            Review the legal and operating boundaries for the desktop monitor before setup
-            starts.
+        </Stack>
+
+        <Stack spacing={1.5}>
+          <Typography color="text.secondary" sx={{ lineHeight: 1.7 }}>
+            QuietClaw is experimental local-first software.
+          </Typography>
+          <Typography color="text.secondary" sx={{ lineHeight: 1.7 }}>
+            It is designed to process data on your device by default. If you enable a third-party provider, selected prompts, files, and context may be sent directly to that provider under your configuration.
+          </Typography>
+          <Typography color="text.secondary" sx={{ lineHeight: 1.7 }}>
+            If you choose to use QuietClaw with personal, confidential, or other sensitive information, that information may be exposed, retained, or mishandled because of software defects, device compromise, provider handling, prompt injection, logs, caches, crash files, backups, or other known or unknown failure modes.
+          </Typography>
+          <Typography color="text.secondary" sx={{ lineHeight: 1.7 }}>
+            QuietClaw is designed to expire certain local working data after approximately 24 hours, but copies may remain longer in some circumstances.
+          </Typography>
+          <Typography color="text.secondary" sx={{ lineHeight: 1.7 }}>
+            The software is provided as-is, without warranties or guarantees of security, privacy, accuracy, availability, or fitness for any particular purpose.
           </Typography>
         </Stack>
 
         <div className="wizard-card">
-          <Stack spacing={1.25}>
-            {legalTerms.map((term) => (
-              <Typography key={term} variant="body2">
-                • {term}
-              </Typography>
-            ))}
-          </Stack>
+          <Typography sx={{ fontSize: 12, color: "var(--text-tertiary)", mb: 1 }}>
+            Review the legal documents
+          </Typography>
+          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+            <button className="wizard-btn wizard-btn-outline" onClick={() => openLegalDocument("TERMS.md")} type="button">
+              Terms of Use
+            </button>
+            <button className="wizard-btn wizard-btn-outline" onClick={() => openLegalDocument("PRIVACY.md")} type="button">
+              Privacy Notice
+            </button>
+            <button className="wizard-btn wizard-btn-outline" onClick={() => openLegalDocument("RISK_DISCLOSURE.md")} type="button">
+              Risk Disclosure
+            </button>
+            <button className="wizard-btn wizard-btn-outline" onClick={() => openLegalDocument("RETENTION_AND_DELETION.md")} type="button">
+              Retention and Deletion
+            </button>
+          </Box>
         </div>
 
-        <label
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            fontSize: 14,
-            color: "var(--text-primary)",
-          }}
-        >
-          <Checkbox checked={legalChecked} onChange={(event) => setLegalChecked(event.target.checked)} />
-          I understand and accept these terms
+        <label className="wizard-check">
+          <Checkbox checked={acceptedTerms} onChange={(event) => setAcceptedTerms(event.target.checked)} />
+          I accept the Terms of Use.
+        </label>
+        <label className="wizard-check">
+          <Checkbox checked={acknowledgedPrivacy} onChange={(event) => setAcknowledgedPrivacy(event.target.checked)} />
+          I have read the Privacy Notice.
+        </label>
+        <label className="wizard-check">
+          <Checkbox checked={acknowledgedRisk} onChange={(event) => setAcknowledgedRisk(event.target.checked)} />
+          I understand QuietClaw is experimental and that privacy, security, and correctness cannot be guaranteed.
+        </label>
+        <label className="wizard-check">
+          <Checkbox checked={acknowledgedRetention} onChange={(event) => setAcknowledgedRetention(event.target.checked)} />
+          I understand local data is intended to expire after about 24 hours, but may persist longer in some cases.
         </label>
 
-        <Box>
+        <label className="wizard-check optional">
+          <Checkbox checked={analyticsOptIn} onChange={(event) => setAnalyticsOptIn(event.target.checked)} />
+          Share anonymous usage analytics.
+        </label>
+        <label className="wizard-check optional">
+          <Checkbox checked={crashPrepOptIn} onChange={(event) => setCrashPrepOptIn(event.target.checked)} />
+          Allow crash reports to be prepared for review before upload.
+        </label>
+
+        <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>
+          <button
+            className="wizard-btn wizard-btn-outline"
+            onClick={() => window.close()}
+            type="button"
+          >
+            Decline and exit
+          </button>
           <button
             className="wizard-btn"
-            disabled={!legalChecked}
+            disabled={!requiredChecksComplete}
             onClick={() => {
-              onLegalAccepted();
+              onLegalAccepted(buildLegalRecord({
+                acceptedAt: new Date().toISOString(),
+              }));
               setStep(1);
             }}
             type="button"
           >
-            Continue →
+            Agree and continue
           </button>
         </Box>
       </Stack>
@@ -719,6 +836,13 @@ export function OnboardingWizard({
               })}
             </Box>
 
+            <div className="info-tip">
+              <span>ℹ</span>
+              <span>
+                When enabled, QuietClaw may send selected prompts and context directly to the chosen provider to generate summaries and urgency assessments. Data sent is handled under that provider&apos;s terms and privacy documentation. Only enable a provider for data you are comfortable sending to that provider.
+              </span>
+            </div>
+
             {noProvidersFound ? (
               <div className="wizard-card">
                 <Typography sx={{ fontSize: 13, color: "var(--text-secondary)", mb: 1 }}>
@@ -871,7 +995,7 @@ export function OnboardingWizard({
                   setAiProviders(result);
                   setSelectedProvider(result.claude ? "claude" : result.codex ? "codex" : null);
                 }).catch(() => {
-                  setAiProviders({ claude: false, codex: false });
+                  setAiProviders(emptyAiProviders);
                   setSelectedProvider(null);
                 });
               }}

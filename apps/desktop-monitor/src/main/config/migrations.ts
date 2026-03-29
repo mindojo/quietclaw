@@ -1,11 +1,17 @@
 import {
   AppConfigSchema,
   createDefaultAppConfig,
+  createDefaultLegalAcceptanceRecord,
   type AppConfig,
+  type LegalAcceptanceRecord,
 } from "./schema";
 
 type MaybePartialAppConfig = Partial<AppConfig> & {
-  legal?: Partial<AppConfig["legal"]>;
+  legal?: Partial<AppConfig["legal"]> & {
+    accepted?: boolean;
+    acceptedVersion?: string | null;
+    acceptedAt?: string | null;
+  };
   telegram?: Partial<AppConfig["telegram"]>;
   daemon?: Partial<AppConfig["daemon"]>;
   monitor?: Partial<AppConfig["monitor"]>;
@@ -26,10 +32,7 @@ export function coerceAppConfig(input: unknown): AppConfig {
   return AppConfigSchema.parse({
     ...defaults,
     ...raw,
-    legal: {
-      ...defaults.legal,
-      ...raw.legal,
-    },
+    legal: normalizeLegalRecord(raw.legal),
     telegram: {
       ...defaults.telegram,
       ...raw.telegram,
@@ -75,6 +78,53 @@ export function coerceAppConfig(input: unknown): AppConfig {
       ...raw.ui,
     },
   });
+}
+
+function normalizeLegalRecord(input: MaybePartialAppConfig["legal"]): LegalAcceptanceRecord {
+  const defaults = createDefaultLegalAcceptanceRecord();
+  const raw = (input ?? {}) as NonNullable<MaybePartialAppConfig["legal"]>;
+  const legacyAccepted = raw.accepted === true;
+  const legacyVersion = raw.acceptedVersion ?? null;
+
+  const legal: LegalAcceptanceRecord = {
+    ...defaults,
+    ...raw,
+    docs: {
+      ...defaults.docs,
+      ...raw.docs,
+    },
+    requiredChecks: {
+      ...defaults.requiredChecks,
+      ...raw.requiredChecks,
+    },
+    optionalChoices: {
+      ...defaults.optionalChoices,
+      ...raw.optionalChoices,
+    },
+    providerConsents: raw.providerConsents ?? defaults.providerConsents,
+  };
+
+  if (legacyAccepted) {
+    legal.legalBundleVersion = "legacy-v1";
+    legal.acceptedAt = raw.acceptedAt ?? legal.acceptedAt;
+    legal.requiredChecks = {
+      acceptedTerms: true,
+      acknowledgedPrivacy: true,
+      acknowledgedRisk: true,
+      acknowledgedRetentionCaveat: true,
+    };
+
+    if (!legal.docs.termsVersion && legacyVersion) {
+      legal.docs = {
+        termsVersion: legacyVersion,
+        privacyVersion: legacyVersion,
+        riskDisclosureVersion: legacyVersion,
+        retentionNoticeVersion: legacyVersion,
+      };
+    }
+  }
+
+  return legal;
 }
 
 type MigrationStore = {

@@ -15,9 +15,11 @@ import { useEffect, useRef, useState } from "react";
 import type {
   ActivityEntry,
   DesktopMonitorUpsert,
+  LegalAcceptanceRecord,
   SaveSettingsInput,
   TelegramStatus,
 } from "../../preload/api";
+import { isCurrentLegalAcceptance } from "../../main/config/schema";
 import { monitorAppClient } from "../api/ipcClient";
 import {
   queryKeys,
@@ -187,7 +189,7 @@ export function App(): JSX.Element {
   });
 
   const acceptLegalMutation = useMutation({
-    mutationFn: (version: string) => monitorAppClient.acceptLegal(version),
+    mutationFn: (record: LegalAcceptanceRecord) => monitorAppClient.acceptLegal(record),
   });
 
   const clearActivityMutation = useMutation({
@@ -320,11 +322,14 @@ export function App(): JSX.Element {
   const telegramStatus = telegramStatusQuery.data;
   const runnerStatus = runnerStatusQuery.data ?? [];
   const telegramReady = telegramStatus?.onboardingState === "ready";
+  const legalAccepted = bootstrapQuery.data
+    ? isCurrentLegalAcceptance(bootstrapQuery.data.legal)
+    : false;
   const updateBannerOpen = settings
     ? settings.updates.status === "update-available" ||
       settings.updates.status === "update-downloaded"
     : false;
-  const isOnboardingComplete = Boolean(bootstrapQuery.data?.legal.accepted) &&
+  const isOnboardingComplete = legalAccepted &&
     telegramStatusQuery.data?.onboardingState === "ready";
   function handleSettingsOpen(open: boolean): void {
     setSettingsOpen(open);
@@ -372,11 +377,13 @@ export function App(): JSX.Element {
       <ThemeProvider theme={appTheme}>
         <CssBaseline />
         <OnboardingWizard
-          legalAccepted={bootstrapQuery.data.legal.accepted}
+          appVersion={settings.appVersion}
+          legal={bootstrapQuery.data.legal}
+          legalAccepted={legalAccepted}
           onComplete={() => {
             void queryClient.invalidateQueries();
           }}
-          onLegalAccepted={() => acceptLegalMutation.mutate("desktop-pack-v1")}
+          onLegalAccepted={(record) => acceptLegalMutation.mutate(record)}
           onTelegramTokenSet={async (token) => {
             const result = await monitorAppClient.setTelegramBotToken(token);
             if (result.ok) {
@@ -451,7 +458,9 @@ export function App(): JSX.Element {
               onClearActivity={() => clearActivityMutation.mutate()}
               onClose={() => handleSettingsOpen(false)}
               onExportDiagnostics={() => exportDiagnosticsMutation.mutate()}
-              onOpenLegal={() => undefined}
+              onOpenLegal={(documentId) => {
+                void monitorAppClient.openLegalDocument(documentId);
+              }}
               onSaveSettings={(input) => saveSettingsMutation.mutate(input)}
               onTelegramTokenDraftChange={setTelegramTokenDraft}
               onVerifyTelegram={() => setTelegramTokenMutation.mutate(telegramTokenDraft)}

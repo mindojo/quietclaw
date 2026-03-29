@@ -76,12 +76,43 @@ export type PromptTemplates = {
   urgent: PromptTemplateConfig;
 };
 
-export type BootstrapState = {
-  legal: {
-    accepted: boolean;
-    acceptedVersion: string | null;
-    acceptedAt: string | null;
+export type LegalDocumentId =
+  | "TERMS.md"
+  | "PRIVACY.md"
+  | "RISK_DISCLOSURE.md"
+  | "RETENTION_AND_DELETION.md";
+
+export type LegalAcceptanceRecord = {
+  legalBundleVersion: string | null;
+  appVersion: string | null;
+  acceptedAt: string | null;
+  locale: string | null;
+  platform: string | null;
+  docs: {
+    termsVersion: string | null;
+    privacyVersion: string | null;
+    riskDisclosureVersion: string | null;
+    retentionNoticeVersion: string | null;
   };
+  requiredChecks: {
+    acceptedTerms: boolean;
+    acknowledgedPrivacy: boolean;
+    acknowledgedRisk: boolean;
+    acknowledgedRetentionCaveat: boolean;
+  };
+  optionalChoices: {
+    analyticsOptIn: boolean;
+    crashPrepOptIn: boolean;
+  };
+  providerConsents: Array<{
+    providerId: string;
+    providerNoticeVersion: string;
+    acceptedAt: string;
+  }>;
+};
+
+export type BootstrapState = {
+  legal: LegalAcceptanceRecord;
   settings: AppSettingsView;
   monitor: DesktopMonitorConfig;
   activity: ActivityEntry[];
@@ -139,11 +170,7 @@ export type RunnerStatus = {
 
 export type AppSettingsView = {
   appVersion: string;
-  legal: {
-    accepted: boolean;
-    acceptedVersion: string | null;
-    acceptedAt: string | null;
-  };
+  legal: LegalAcceptanceRecord;
   runnerPreference: RunnerPreference;
   updates: UpdateState;
   ui: {
@@ -175,6 +202,8 @@ export type SaveSettingsInput = Partial<{
   startAtLogin: boolean;
   updateChannel: "stable";
   settingsOpen: boolean;
+  analyticsOptIn: boolean;
+  crashPrepOptIn: boolean;
 }>;
 
 export type UpdateCheckResult = UpdateState;
@@ -213,7 +242,7 @@ type MonitorAppBridge = {
 
 export type MonitorAppApi = {
   getBootstrapState(): Promise<BootstrapState>;
-  acceptLegal(version: string): Promise<void>;
+  acceptLegal(record: LegalAcceptanceRecord): Promise<LegalAcceptanceRecord>;
 
   detectAiProviders(): Promise<AiProviderDetection>;
   testAiConnection(): Promise<AiTestResult>;
@@ -228,6 +257,7 @@ export type MonitorAppApi = {
   getGroupMembers(groupId: string): Promise<GroupMembersResponse>;
   hideGroup(groupId: string): Promise<void>;
   openExternal(url: string): Promise<void>;
+  openLegalDocument(documentId: LegalDocumentId): Promise<void>;
 
   getMonitor(): Promise<DesktopMonitorConfig>;
   getPromptTemplates(): Promise<PromptTemplates>;
@@ -258,7 +288,7 @@ export type MonitorAppApi = {
 export function createMonitorAppApi(bridge: MonitorAppBridge): MonitorAppApi {
   return {
     getBootstrapState: () => bridge.invoke("app:getBootstrapState"),
-    acceptLegal: (version) => bridge.invoke("app:acceptLegal", version),
+    acceptLegal: (record) => bridge.invoke("app:acceptLegal", record),
     detectAiProviders: () => bridge.invoke("app:detectAiProviders"),
     testAiConnection: () => bridge.invoke("app:testAiConnection"),
     setTelegramBotToken: (token) => bridge.invoke("app:setTelegramBotToken", token),
@@ -272,6 +302,7 @@ export function createMonitorAppApi(bridge: MonitorAppBridge): MonitorAppApi {
     getGroupMembers: (groupId) => bridge.invoke("app:getGroupMembers", groupId),
     hideGroup: (groupId) => bridge.invoke("app:hideGroup", groupId),
     openExternal: (url) => bridge.invoke("app:openExternal", url),
+    openLegalDocument: (documentId) => bridge.invoke("app:openLegalDocument", documentId),
     getMonitor: () => bridge.invoke("app:getMonitor"),
     getPromptTemplates: () => bridge.invoke("app:getPromptTemplates"),
     saveMonitor: (input) => bridge.invoke("app:saveMonitor", input),

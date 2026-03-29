@@ -99,11 +99,11 @@ export async function spawnText(input: {
 
     combinedSignal.addEventListener("abort", handleAbort, { once: true });
 
-    child.stdout.on("data", (chunk: Buffer | string) => {
+    child.stdout?.on("data", (chunk: Buffer | string) => {
       stdout += chunk.toString();
     });
 
-    child.stderr.on("data", (chunk: Buffer | string) => {
+    child.stderr?.on("data", (chunk: Buffer | string) => {
       stderr += chunk.toString();
     });
 

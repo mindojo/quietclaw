@@ -10,7 +10,7 @@ function getMonitorAppApi(): MonitorAppApi {
 
 export const monitorAppClient: MonitorAppApi = {
   getBootstrapState: () => getMonitorAppApi().getBootstrapState(),
-  acceptLegal: (version) => getMonitorAppApi().acceptLegal(version),
+  acceptLegal: (record) => getMonitorAppApi().acceptLegal(record),
   detectAiProviders: () => getMonitorAppApi().detectAiProviders(),
   testAiConnection: () => getMonitorAppApi().testAiConnection(),
   setTelegramBotToken: (token) => getMonitorAppApi().setTelegramBotToken(token),
@@ -24,6 +24,7 @@ export const monitorAppClient: MonitorAppApi = {
   getGroupMembers: (groupId) => getMonitorAppApi().getGroupMembers(groupId),
   hideGroup: (groupId) => getMonitorAppApi().hideGroup(groupId),
   openExternal: (url) => getMonitorAppApi().openExternal(url),
+  openLegalDocument: (documentId) => getMonitorAppApi().openLegalDocument(documentId),
   getMonitor: () => getMonitorAppApi().getMonitor(),
   getPromptTemplates: () => getMonitorAppApi().getPromptTemplates(),
   saveMonitor: (input) => getMonitorAppApi().saveMonitor(input),

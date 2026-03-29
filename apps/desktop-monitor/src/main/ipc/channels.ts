@@ -16,6 +16,7 @@ export const IPC_CHANNELS = {
   getTelegramStatus: "app:getTelegramStatus",
   hideGroup: "app:hideGroup",
   openExternal: "app:openExternal",
+  openLegalDocument: "app:openLegalDocument",
   listDemoScenarios: "app:listDemoScenarios",
   resetDemo: "app:resetDemo",
   resetConnections: "app:resetConnections",

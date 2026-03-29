@@ -69,6 +69,18 @@
   background: rgba(58, 107, 53, 0.05);
 }
 
+.wizard-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.wizard-check.optional {
+  color: var(--text-secondary);
+}
+
 .tg-mock {
   background: #e7ebef;
   border-radius: var(--radius-lg);

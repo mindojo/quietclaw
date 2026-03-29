@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 
+import { LEGAL_BUNDLE_VERSION } from "../../main/config/schema";
 import { monitorAppClient } from "../api/ipcClient";
 
 type LegalGateProps = {
@@ -19,7 +20,30 @@ type LegalGateProps = {
 export function LegalGate({ onAccepted }: LegalGateProps): JSX.Element {
   const [accepted, setAccepted] = useState(false);
   const acceptMutation = useMutation({
-    mutationFn: () => monitorAppClient.acceptLegal("desktop-pack-v1"),
+    mutationFn: () => monitorAppClient.acceptLegal({
+      legalBundleVersion: LEGAL_BUNDLE_VERSION,
+      appVersion: null,
+      acceptedAt: new Date().toISOString(),
+      locale: navigator.language ?? null,
+      platform: navigator.platform ?? null,
+      docs: {
+        termsVersion: LEGAL_BUNDLE_VERSION,
+        privacyVersion: LEGAL_BUNDLE_VERSION,
+        riskDisclosureVersion: LEGAL_BUNDLE_VERSION,
+        retentionNoticeVersion: LEGAL_BUNDLE_VERSION,
+      },
+      requiredChecks: {
+        acceptedTerms: true,
+        acknowledgedPrivacy: true,
+        acknowledgedRisk: true,
+        acknowledgedRetentionCaveat: true,
+      },
+      optionalChoices: {
+        analyticsOptIn: false,
+        crashPrepOptIn: false,
+      },
+      providerConsents: [],
+    }),
     onSuccess: () => {
       onAccepted();
     },

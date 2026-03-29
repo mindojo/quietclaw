@@ -7,7 +7,57 @@ import {
   DEFAULT_URGENT_TEMPLATE,
 } from "./promptDefaults.js";
 
-export const LEGAL_ACCEPTED_VERSION = "desktop-pack-v1";
+export const LEGAL_BUNDLE_VERSION = "2026-03-29.1";
+
+const LegalDocsSchema = z.object({
+  termsVersion: z.string().nullable(),
+  privacyVersion: z.string().nullable(),
+  riskDisclosureVersion: z.string().nullable(),
+  retentionNoticeVersion: z.string().nullable(),
+});
+
+const LegalRequiredChecksSchema = z.object({
+  acceptedTerms: z.boolean(),
+  acknowledgedPrivacy: z.boolean(),
+  acknowledgedRisk: z.boolean(),
+  acknowledgedRetentionCaveat: z.boolean(),
+});
+
+const LegalOptionalChoicesSchema = z.object({
+  analyticsOptIn: z.boolean(),
+  crashPrepOptIn: z.boolean(),
+});
+
+const LegalProviderConsentSchema = z.object({
+  providerId: z.string(),
+  providerNoticeVersion: z.string(),
+  acceptedAt: z.string(),
+});
+
+export const LegalAcceptanceRecordSchema = z.object({
+  legalBundleVersion: z.string().nullable(),
+  appVersion: z.string().nullable(),
+  acceptedAt: z.string().nullable(),
+  locale: z.string().nullable(),
+  platform: z.string().nullable(),
+  docs: LegalDocsSchema.default({
+    termsVersion: null,
+    privacyVersion: null,
+    riskDisclosureVersion: null,
+    retentionNoticeVersion: null,
+  }),
+  requiredChecks: LegalRequiredChecksSchema.default({
+    acceptedTerms: false,
+    acknowledgedPrivacy: false,
+    acknowledgedRisk: false,
+    acknowledgedRetentionCaveat: false,
+  }),
+  optionalChoices: LegalOptionalChoicesSchema.default({
+    analyticsOptIn: false,
+    crashPrepOptIn: false,
+  }),
+  providerConsents: z.array(LegalProviderConsentSchema).default([]),
+});
 
 const RunnerTimezoneSchema = z.string().refine(
   (value) => DateTime.local().setZone(value).isValid,
@@ -17,10 +67,29 @@ const RunnerTimezoneSchema = z.string().refine(
 export const AppConfigSchema = z.object({
   schemaVersion: z.literal(1),
 
-  legal: z.object({
-    accepted: z.boolean(),
-    acceptedVersion: z.string().nullable(),
-    acceptedAt: z.string().nullable(),
+  legal: LegalAcceptanceRecordSchema.default({
+    legalBundleVersion: null,
+    appVersion: null,
+    acceptedAt: null,
+    locale: null,
+    platform: null,
+    docs: {
+      termsVersion: null,
+      privacyVersion: null,
+      riskDisclosureVersion: null,
+      retentionNoticeVersion: null,
+    },
+    requiredChecks: {
+      acceptedTerms: false,
+      acknowledgedPrivacy: false,
+      acknowledgedRisk: false,
+      acknowledgedRetentionCaveat: false,
+    },
+    optionalChoices: {
+      analyticsOptIn: false,
+      crashPrepOptIn: false,
+    },
+    providerConsents: [],
   }),
 
   telegram: z.object({
@@ -139,20 +208,55 @@ export type AppConfig = z.infer<typeof AppConfigSchema>;
 export type RunnerPreference = z.infer<typeof RunnerPreferenceSchema>;
 export type ActivityEntry = AppConfig["activity"]["entries"][number];
 export type ActivityKind = ActivityEntry["kind"];
+export type LegalAcceptanceRecord = z.infer<typeof LegalAcceptanceRecordSchema>;
 
 function getDefaultTimeZone(): string {
   const timeZone = DateTime.local().zoneName;
   return timeZone && DateTime.local().setZone(timeZone).isValid ? timeZone : "UTC";
 }
 
+export function createDefaultLegalAcceptanceRecord(): LegalAcceptanceRecord {
+  return {
+    legalBundleVersion: null,
+    appVersion: null,
+    acceptedAt: null,
+    locale: null,
+    platform: null,
+    docs: {
+      termsVersion: null,
+      privacyVersion: null,
+      riskDisclosureVersion: null,
+      retentionNoticeVersion: null,
+    },
+    requiredChecks: {
+      acceptedTerms: false,
+      acknowledgedPrivacy: false,
+      acknowledgedRisk: false,
+      acknowledgedRetentionCaveat: false,
+    },
+    optionalChoices: {
+      analyticsOptIn: false,
+      crashPrepOptIn: false,
+    },
+    providerConsents: [],
+  };
+}
+
+export function hasRequiredLegalChecks(record: LegalAcceptanceRecord): boolean {
+  return record.requiredChecks.acceptedTerms &&
+    record.requiredChecks.acknowledgedPrivacy &&
+    record.requiredChecks.acknowledgedRisk &&
+    record.requiredChecks.acknowledgedRetentionCaveat;
+}
+
+export function isCurrentLegalAcceptance(record: LegalAcceptanceRecord): boolean {
+  return record.legalBundleVersion === LEGAL_BUNDLE_VERSION && hasRequiredLegalChecks(record);
+}
+
 export function createDefaultAppConfig(): AppConfig {
   return {
     schemaVersion: 1,
-    legal: {
-      accepted: false,
-      acceptedVersion: null,
-      acceptedAt: null,
-    },
+    legal: createDefaultLegalAcceptanceRecord(),
     telegram: {
       encryptedBotToken: null,
       botUsername: null,

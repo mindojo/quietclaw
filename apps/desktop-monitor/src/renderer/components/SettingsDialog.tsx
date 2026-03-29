@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import type {
   AiTestResult,
   AppSettingsView,
+  LegalDocumentId,
   PromptTemplates,
   RunnerStatus,
   SaveSettingsInput,
@@ -39,7 +40,7 @@ type SettingsDialogProps = {
   exportDiagnosticsPending: boolean;
   clearActivityPending: boolean;
   onClose(): void;
-  onOpenLegal(): void;
+  onOpenLegal(documentId: LegalDocumentId): void;
   onCheckForUpdates(): void;
   onClearActivity(): void;
   onExportDiagnostics(): void;
@@ -60,7 +61,7 @@ export function SettingsDialog({
   exportDiagnosticsPending: _exportDiagnosticsPending,
   clearActivityPending: _clearActivityPending,
   onClose,
-  onOpenLegal: _onOpenLegal,
+  onOpenLegal,
   onCheckForUpdates: _onCheckForUpdates,
   onClearActivity: _onClearActivity,
   onExportDiagnostics: _onExportDiagnostics,
@@ -83,6 +84,12 @@ export function SettingsDialog({
   });
   const [selectedProviderId, setSelectedProviderId] = useState<string>(
     settings.runnerPreference === "codex" ? "codex" : "claude",
+  );
+  const [analyticsOptIn, setAnalyticsOptIn] = useState(
+    settings.legal.optionalChoices.analyticsOptIn,
+  );
+  const [crashPrepOptIn, setCrashPrepOptIn] = useState(
+    settings.legal.optionalChoices.crashPrepOptIn,
   );
   const activeRunner = runnerStatus.find((entry) => entry.id === selectedProviderId) ?? runnerStatus.find((entry) => entry.selected) ?? null;
   const providerOptions = runnerStatus.filter((entry) => entry.id === "claude" || entry.id === "codex");
@@ -114,6 +121,14 @@ export function SettingsDialog({
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    setAnalyticsOptIn(settings.legal.optionalChoices.analyticsOptIn);
+    setCrashPrepOptIn(settings.legal.optionalChoices.crashPrepOptIn);
+  }, [
+    settings.legal.optionalChoices.analyticsOptIn,
+    settings.legal.optionalChoices.crashPrepOptIn,
+  ]);
 
   async function handleTestAi(): Promise<void> {
     setTestRunning(true);
@@ -376,6 +391,60 @@ export function SettingsDialog({
             <span style={{ fontSize: 12, color: "var(--green)" }}>Connected</span>
           ) : null}
         </div>
+      </div>
+
+      <hr className="settings-divider" />
+      <div className="settings-section">
+        <p className="settings-label">Legal</p>
+        <div className="settings-button-list">
+          {([
+            { id: "TERMS.md", label: "Terms of Use" },
+            { id: "PRIVACY.md", label: "Privacy Notice" },
+            { id: "RISK_DISCLOSURE.md", label: "Risk Disclosure" },
+            { id: "RETENTION_AND_DELETION.md", label: "Retention and Deletion" },
+          ] as const).map((entry) => (
+            <button
+              className="dashboard-button secondary sm"
+              key={entry.id}
+              onClick={() => onOpenLegal(entry.id)}
+              type="button"
+            >
+              {entry.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <hr className="settings-divider" />
+      <div className="settings-section">
+        <p className="settings-label">Diagnostics (coming soon)</p>
+        <label className="settings-check">
+          <input
+            checked={analyticsOptIn}
+            onChange={(event) => {
+              const nextValue = event.target.checked;
+              setAnalyticsOptIn(nextValue);
+              onSaveSettings({ analyticsOptIn: nextValue });
+            }}
+            type="checkbox"
+          />
+          <span>Share anonymous usage analytics</span>
+        </label>
+        <label className="settings-check">
+          <input
+            checked={crashPrepOptIn}
+            onChange={(event) => {
+              const nextValue = event.target.checked;
+              setCrashPrepOptIn(nextValue);
+              onSaveSettings({ crashPrepOptIn: nextValue });
+            }}
+            type="checkbox"
+          />
+          <span>Allow crash reports to be prepared for review before upload</span>
+        </label>
+        <p className="settings-helper">
+          These features are not yet active. Your choices will be applied when they ship in a future update.
+        </p>
       </div>
 
       <hr className="settings-divider" />

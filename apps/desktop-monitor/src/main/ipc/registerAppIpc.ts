@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import fs from "node:fs/promises";
 import { exec } from "node:child_process";
 import os from "node:os";
@@ -13,6 +14,8 @@ import type {
   DesktopMonitorConfig,
   DesktopMonitorUpsert,
   ExportDiagnosticsResult,
+  LegalAcceptanceRecord,
+  LegalDocumentId,
   ManualRunResult,
   RendererSubscriptionEvent,
   SaveSettingsInput,
@@ -21,7 +24,10 @@ import {
   DEFAULT_SUMMARY_TEMPLATE,
   DEFAULT_URGENT_TEMPLATE,
 } from "../config/promptDefaults.js";
-import { LEGAL_ACCEPTED_VERSION } from "../config/schema";
+import {
+  LEGAL_BUNDLE_VERSION,
+  LegalAcceptanceRecordSchema,
+} from "../config/schema";
 import { readAppConfig, updateAppConfig } from "../config/store";
 import { log } from "../logging";
 import type { DesktopAppRuntime } from "../startup/bootstrap";
@@ -138,6 +144,13 @@ async function handleSaveSettings(
       updateChannel: input.updateChannel ?? config.ui.updateChannel,
       settingsOpen: input.settingsOpen ?? config.ui.settingsOpen,
     },
+    legal: {
+      ...config.legal,
+      optionalChoices: {
+        analyticsOptIn: input.analyticsOptIn ?? config.legal.optionalChoices.analyticsOptIn,
+        crashPrepOptIn: input.crashPrepOptIn ?? config.legal.optionalChoices.crashPrepOptIn,
+      },
+    },
   }));
 
   if (typeof input.startAtLogin === "boolean") {
@@ -239,26 +252,45 @@ function sanitizeActivityEntries(entries: ActivityEntry[]) {
   }));
 }
 
+function resolveLegalDocumentPath(documentId: LegalDocumentId): string {
+  const candidateRoots = [
+    process.cwd(),
+    app.getAppPath(),
+    path.resolve(app.getAppPath(), ".."),
+    path.resolve(app.getAppPath(), "..", ".."),
+  ];
+
+  for (const root of candidateRoots) {
+    const candidate = path.resolve(root, "docs/legal", documentId);
+    if (existsSync(candidate)) {
+      return candidate;
+    }
+  }
+
+  throw new Error(`Unable to locate legal document: ${documentId}`);
+}
+
 export function registerAppIpc(runtime: DesktopAppRuntime): void {
   if (isRegistered) {
     return;
   }
 
   ipcMain.handle(IPC_CHANNELS.getBootstrapState, async () => runtime.getBootstrapState());
-  ipcMain.handle(IPC_CHANNELS.acceptLegal, async (_event, version: string) => {
-    const acceptedVersion = version || LEGAL_ACCEPTED_VERSION;
+  ipcMain.handle(IPC_CHANNELS.acceptLegal, async (_event, record: LegalAcceptanceRecord) => {
+    const acceptedRecord = LegalAcceptanceRecordSchema.parse({
+      ...record,
+      legalBundleVersion: record.legalBundleVersion ?? LEGAL_BUNDLE_VERSION,
+    });
 
     updateAppConfig((config) => ({
       ...config,
-      legal: {
-        accepted: true,
-        acceptedVersion,
-        acceptedAt: nowIso(),
-      },
+      legal: acceptedRecord,
     }));
 
     rendererEventBus.emit({ type: "bootstrap-changed" });
     rendererEventBus.emit({ type: "settings-changed" });
+
+    return acceptedRecord;
   });
   ipcMain.handle(IPC_CHANNELS.detectAiProviders, async () => {
     const { shellExecOptions } = await import("../util/shellPath.js");
@@ -344,6 +376,12 @@ export function registerAppIpc(runtime: DesktopAppRuntime): void {
     // Only allow https:// and tg:// URLs for security
     if (url.startsWith("https://") || url.startsWith("tg://")) {
       await shell.openExternal(url);
+    }
+  });
+  ipcMain.handle(IPC_CHANNELS.openLegalDocument, async (_event, documentId: LegalDocumentId) => {
+    const result = await shell.openPath(resolveLegalDocumentPath(documentId));
+    if (result) {
+      throw new Error(result);
     }
   });
   ipcMain.handle(IPC_CHANNELS.getTelegramStatus, async () => runtime.getTelegramStatus());

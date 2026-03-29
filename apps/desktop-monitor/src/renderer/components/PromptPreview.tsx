@@ -17,7 +17,7 @@ function renderTemplateWithHighlights(
       result.push(template.slice(cursor, match.index));
     }
 
-    const key = match[1];
+    const key = match[1] ?? "";
     const value = variables[key];
     if (value === undefined) {
       result.push(match[0]);
