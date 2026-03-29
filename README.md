@@ -103,4 +103,8 @@ Produces macOS (DMG/ZIP) and Windows (Squirrel) installers in `apps/desktop-moni
 
 ## License
 
-Private
+Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE).
+
+## Community
+
+For general questions and bug reports, see [SUPPORT.md](SUPPORT.md). For contribution expectations, see [CONTRIBUTING.md](CONTRIBUTING.md). For suspected vulnerabilities, see [SECURITY.md](SECURITY.md).

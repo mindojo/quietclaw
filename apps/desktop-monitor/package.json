@@ -2,6 +2,7 @@
   "name": "@quietclaw/desktop",
   "version": "0.0.0",
   "private": true,
+  "license": "Apache-2.0",
   "main": ".webpack/main",
   "productName": "QuietClaw",
   "description": "QuietClaw Desktop Monitor shell",
