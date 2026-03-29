@@ -11,11 +11,11 @@ export type AdapterCatalogEntry = {
 
 export const ADAPTER_CATALOG: AdapterCatalogEntry[] = [
   { id: "telegram", displayName: "Telegram", status: "ga", officiality: "official", setupComplexity: "low", requiresPublicEndpoint: false, selfHostableForTests: false, recommendedForMarketing: true },
-  { id: "slack", displayName: "Slack", status: "planned", officiality: "official", setupComplexity: "medium", requiresPublicEndpoint: false, selfHostableForTests: false, recommendedForMarketing: true },
-  { id: "discord", displayName: "Discord", status: "planned", officiality: "official", setupComplexity: "medium", requiresPublicEndpoint: false, selfHostableForTests: false, recommendedForMarketing: true },
-  { id: "matrix", displayName: "Matrix", status: "planned", officiality: "open_protocol", setupComplexity: "medium", requiresPublicEndpoint: false, selfHostableForTests: true, recommendedForMarketing: true },
-  { id: "mattermost", displayName: "Mattermost", status: "planned", officiality: "open_protocol", setupComplexity: "medium", requiresPublicEndpoint: false, selfHostableForTests: true, recommendedForMarketing: true },
-  { id: "zulip", displayName: "Zulip", status: "planned", officiality: "open_protocol", setupComplexity: "medium", requiresPublicEndpoint: false, selfHostableForTests: true, recommendedForMarketing: true },
+  { id: "slack", displayName: "Slack", status: "beta", officiality: "official", setupComplexity: "medium", requiresPublicEndpoint: false, selfHostableForTests: false, recommendedForMarketing: true },
+  { id: "discord", displayName: "Discord", status: "beta", officiality: "official", setupComplexity: "medium", requiresPublicEndpoint: false, selfHostableForTests: false, recommendedForMarketing: true },
+  { id: "matrix", displayName: "Matrix", status: "beta", officiality: "open_protocol", setupComplexity: "medium", requiresPublicEndpoint: false, selfHostableForTests: true, recommendedForMarketing: true },
+  { id: "mattermost", displayName: "Mattermost", status: "beta", officiality: "open_protocol", setupComplexity: "medium", requiresPublicEndpoint: false, selfHostableForTests: true, recommendedForMarketing: true },
+  { id: "zulip", displayName: "Zulip", status: "beta", officiality: "open_protocol", setupComplexity: "medium", requiresPublicEndpoint: false, selfHostableForTests: true, recommendedForMarketing: true },
   { id: "teams", displayName: "Microsoft Teams", status: "planned", officiality: "official", setupComplexity: "high", requiresPublicEndpoint: true, selfHostableForTests: false, recommendedForMarketing: true },
   { id: "google-chat", displayName: "Google Chat", status: "planned", officiality: "official", setupComplexity: "high", requiresPublicEndpoint: true, selfHostableForTests: false, recommendedForMarketing: true },
   { id: "rocketchat", displayName: "Rocket.Chat", status: "planned", officiality: "open_protocol", setupComplexity: "medium", requiresPublicEndpoint: false, selfHostableForTests: true, recommendedForMarketing: true },
