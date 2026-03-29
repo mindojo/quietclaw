@@ -369,7 +369,7 @@ export function OnboardingWizard({
         <Box
           sx={{
             width: "100%",
-            maxWidth: 720,
+            maxWidth: 860,
             background: "var(--bg-primary)",
             border: "1px solid var(--border-light)",
             borderRadius: "var(--radius-lg)",
@@ -527,7 +527,7 @@ export function OnboardingWizard({
         </Typography>
 
         <div className="wizard-card">
-          {renderTelegramMock("Naming flow", "Q", [
+          {renderTelegramMock("BotFather", "B", [
             { text: "QuietClaw Monitor", user: true },
             { text: "Good. Now send me the username for your bot." },
             { text: "quietclaw_helper_bot", user: true },
@@ -608,61 +608,52 @@ export function OnboardingWizard({
           STEP 4
         </Typography>
         <Typography sx={{ fontSize: 22, fontWeight: 500, mb: 0.5 }}>Activate your bot</Typography>
-        <Typography color="text.secondary" sx={{ fontSize: 14, lineHeight: 1.6, mb: 2 }}>
-          One last step for Telegram — you need to "start" your bot so it has permission to send you messages.
+        <Typography color="text.secondary" sx={{ fontSize: 13, lineHeight: 1.6, mb: 1.5 }}>
+          Open your bot in Telegram and press <strong>Start</strong> to give QuietClaw permission to message you.
         </Typography>
 
-        <div className="wizard-card">
-          <p style={{ fontSize: 14, margin: "0 0 4px", fontWeight: 500 }}>Open your new bot in Telegram:</p>
-          <p style={{ fontSize: 14, color: "var(--text-secondary)", margin: "0 0 12px", lineHeight: 1.6 }}>
-            Click the button below. Your bot's chat will open with a blue <strong>Start</strong> button at the bottom. Press it.
-          </p>
-          <button
-            className="wizard-btn"
-            onClick={() => openExternal(botLink)}
-            type="button"
-          >
-            Open my bot in Telegram →
-          </button>
-        </div>
+        <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start", flexWrap: "wrap" }}>
+          {/* Left: action + mock */}
+          <Box sx={{ flex: "1 1 300px" }}>
+            <button className="wizard-btn" onClick={() => openExternal(botLink)} type="button" style={{ marginBottom: 8 }}>
+              Open my bot in Telegram →
+            </button>
 
-        {/* Telegram mock matching the actual Start UI */}
-        <div className="tg-mock">
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, fontWeight: 500, fontSize: 14 }}>
-            <div className="tg-avatar" style={{ background: "var(--green)" }}>Q</div>
-            <span>{safeTelegramStatus.botUsername ? `@${safeTelegramStatus.botUsername}` : "My QuietClaw"}</span>
-            <span style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 400, marginLeft: 4 }}>bot</span>
-          </div>
-          <div style={{ textAlign: "center", padding: "3rem 0", fontSize: 14, color: "var(--text-tertiary)" }}>No messages here yet</div>
-          <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px solid rgba(0,0,0,.08)", textAlign: "center" }}>
-            <button style={{
-              display: "inline-block", padding: "8px 0", width: "100%",
-              background: "linear-gradient(180deg, #4BA3F5 0%, #1E88D0 100%)",
-              color: "#fff", border: "none", borderRadius: 8, fontSize: 14,
-              fontWeight: 500, fontFamily: "var(--font-sans)", cursor: "default", letterSpacing: "0.3px",
-            }} type="button">Start</button>
-          </div>
-        </div>
+            {/* Compact Telegram mock */}
+            <div className="tg-mock" style={{ padding: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8, fontWeight: 500, fontSize: 13 }}>
+                <div className="tg-avatar" style={{ background: "var(--green)", width: 24, height: 24, fontSize: 12 }}>Q</div>
+                <span>{safeTelegramStatus.botUsername ? `@${safeTelegramStatus.botUsername}` : "My QuietClaw"}</span>
+              </div>
+              <div style={{ textAlign: "center", padding: "1.5rem 0", fontSize: 13, color: "var(--text-tertiary)" }}>No messages yet</div>
+              <div style={{ paddingTop: 8, borderTop: "1px solid rgba(0,0,0,.08)", textAlign: "center" }}>
+                <button style={{
+                  padding: "6px 0", width: "100%",
+                  background: "linear-gradient(180deg, #4BA3F5 0%, #1E88D0 100%)",
+                  color: "#fff", border: "none", borderRadius: 6, fontSize: 13,
+                  fontWeight: 500, fontFamily: "var(--font-sans)", cursor: "default",
+                }} type="button">Start</button>
+              </div>
+            </div>
+          </Box>
 
-        <div className="info-tip">
-          <span style={{ flexShrink: 0 }}>ℹ</span>
-          <span>When you press <strong>Start</strong>, Telegram automatically sends <code>/start</code> to your bot. This gives QuietClaw permission to message you.</span>
-        </div>
+          {/* Right: status + test */}
+          <Box sx={{ flex: "1 1 200px" }}>
+            {!telegramReady ? (
+              <div className="info-tip" style={{ margin: "0 0 8px" }}>
+                <span>⏳</span>
+                <span style={{ fontSize: 12 }}>Waiting for <code>/start</code> in Telegram…</span>
+              </div>
+            ) : (
+              <div className="success-banner" style={{ margin: "0 0 8px" }}>
+                <span>✓</span>
+                <span style={{ fontSize: 12 }}>Bot activated — ready to send messages.</span>
+              </div>
+            )}
 
-        {!telegramReady ? (
-          <div className="info-tip" style={{ marginTop: 4 }}>
-            <span>⏳</span>
-            <span>
-              QuietClaw is still waiting for Telegram to observe <code>/start</code>. Complete that
-              step in Telegram, then come back here.
-            </span>
-          </div>
-        ) : null}
+            {tokenError && step === 4 ? <div className="error-banner" style={{ margin: "0 0 8px" }}>⚠ {tokenError}</div> : null}
 
-        {tokenError && step === 4 ? <div className="error-banner">⚠ {tokenError}</div> : null}
-
-        <div style={{ margin: "1.25rem 0" }}>
-          <p style={{ fontSize: 14, margin: "0 0 8px", fontWeight: 500 }}>Confirm it works:</p>
+            <p style={{ fontSize: 13, margin: "0 0 6px", fontWeight: 500 }}>Confirm it works:</p>
           <button
             className={`wizard-btn${testSent ? " wizard-btn-outline" : ""}`}
             disabled={!telegramReady || sendingTest}
@@ -676,7 +667,8 @@ export function OnboardingWizard({
                 ? "Sent! Check Telegram ✓"
                 : "Send me a test message"}
           </button>
-        </div>
+          </Box>
+        </Box>
 
         <Box sx={{ display: "flex", gap: 1.5, mt: 1.5 }}>
           <button className="wizard-btn wizard-btn-outline" onClick={() => setStep(3)} type="button">

@@ -85,6 +85,29 @@ export class TelegramOnboarding {
       const encrypted = encryptTelegramBotToken(nextToken);
       this.bot = nextBot;
       this.updateOffset = 0;
+
+      // Check if this bot already has a /start chat from a previous session
+      const currentConfig = this.configStore.getTelegramConfig();
+      const sameBotReconnecting = currentConfig.botUsername === me.username && currentConfig.chatId !== null;
+
+      if (sameBotReconnecting) {
+        // Same bot, already has a chatId — skip /start flow
+        this.chatId = currentConfig.chatId;
+        this.configStore.setTelegramConfig((current) => ({
+          ...current,
+          encryptedBotToken: encrypted.encryptedToken,
+          botUsername: me.username,
+          onboardingState: "ready",
+          lastVerifiedAt: new Date().toISOString(),
+        }));
+        this.transition("ready", {
+          botUsername: me.username,
+          chatId: currentConfig.chatId!,
+        });
+        return { ok: true };
+      }
+
+      // New bot or no prior chatId — need /start flow
       this.configStore.setTelegramConfig((current) => ({
         ...current,
         encryptedBotToken: encrypted.encryptedToken,
