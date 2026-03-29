@@ -4,7 +4,7 @@ import type { Configuration } from "webpack";
 import rules from "./webpack.rules.ts";
 
 const config: Configuration = {
-  target: "web",
+  target: "electron-renderer",
   module: {
     rules: [
       ...rules,
@@ -16,6 +16,10 @@ const config: Configuration = {
   },
   resolve: {
     extensions: [".js", ".ts", ".tsx", ".json"],
+    extensionAlias: {
+      ".js": [".ts", ".js"],
+      ".mjs": [".mts", ".mjs"],
+    },
   },
   optimization: {
     minimizer: [

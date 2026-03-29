@@ -301,8 +301,8 @@ export function SettingsDialog({
         {testRunning ? (
           <div className="test-result pending">
             ⏳ Running: {activeRunner?.id === "codex"
-              ? 'codex exec -m gpt-4.1-mini "Reply with OK"'
-              : 'claude -p "Reply with OK" --model haiku'}
+              ? 'codex exec --ephemeral "Is this message urgent? ..."'
+              : 'claude -p --model haiku "Is this message urgent? ..."'}
             {"\n"}  Waiting for response…
           </div>
         ) : null}
