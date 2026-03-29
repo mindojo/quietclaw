@@ -28,15 +28,29 @@ const packageIgnorePatterns = [
 ];
 const keepWebpackOutputPattern = /^[/\\]\.webpack($|[/\\]).*$/;
 const macSigningCredentials = getMacSigningCredentials();
+const macCodeSigningIdentity = process.env.APPLE_CODESIGN_IDENTITY;
 const windowsCertificateFile = process.env.WINDOWS_CERTIFICATE_FILE;
 const windowsCertificatePassword = process.env.WINDOWS_CERTIFICATE_PASSWORD;
 
 function getMacSigningCredentials() {
   const appleId = process.env.APPLE_ID;
   const appleIdPassword = process.env.APPLE_APP_SPECIFIC_PASSWORD;
+  const keychainProfile = process.env.APPLE_KEYCHAIN_PROFILE;
+  const keychain = process.env.APPLE_KEYCHAIN_PATH;
   const teamId = process.env.APPLE_TEAM_ID;
 
-  if (!appleId || !appleIdPassword || !teamId) {
+  if (!teamId) {
+    return undefined;
+  }
+
+  if (keychainProfile) {
+    return {
+      keychainProfile,
+      keychain,
+    };
+  }
+
+  if (!appleId || !appleIdPassword) {
     return undefined;
   }
 
@@ -77,7 +91,10 @@ const config: ForgeConfig = {
     },
     name: "QuietClaw",
     osxNotarize: macSigningCredentials,
-    osxSign: macSigningCredentials ? {} : undefined,
+    osxSign: {
+      hardenedRuntime: true,
+      identity: macCodeSigningIdentity || undefined,
+    },
   },
   makers: [
     {
