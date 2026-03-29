@@ -422,79 +422,36 @@ export function OnboardingWizard({
 
   if (step === 0) {
     content = (
-        <Stack spacing={3}>
-          <Stack spacing={1}>
-            <Typography sx={{ fontSize: 12, color: "var(--text-tertiary)", letterSpacing: 0.4 }}>
-            STEP 0 OF 5
-          </Typography>
-          <Typography sx={{ fontSize: { xs: 28, md: 34 }, fontWeight: 600 }}>
-            Before you start
-          </Typography>
-        </Stack>
-
         <Stack spacing={1.5}>
-          <Typography color="text.secondary" sx={{ lineHeight: 1.7 }}>
-            QuietClaw is experimental local-first software.
-          </Typography>
-          <Typography color="text.secondary" sx={{ lineHeight: 1.7 }}>
-            It is designed to process data on your device by default. If you enable a third-party provider, selected prompts, files, and context may be sent directly to that provider under your configuration.
-          </Typography>
-          <Typography color="text.secondary" sx={{ lineHeight: 1.7 }}>
-            If you choose to use QuietClaw with personal, confidential, or other sensitive information, that information may be exposed, retained, or mishandled because of software defects, device compromise, provider handling, prompt injection, logs, caches, crash files, backups, or other known or unknown failure modes.
-          </Typography>
-          <Typography color="text.secondary" sx={{ lineHeight: 1.7 }}>
-            QuietClaw is designed to expire certain local working data after approximately 24 hours, but copies may remain longer in some circumstances.
-          </Typography>
-          <Typography color="text.secondary" sx={{ lineHeight: 1.7 }}>
-            The software is provided as-is, without warranties or guarantees of security, privacy, accuracy, availability, or fitness for any particular purpose.
-          </Typography>
-        </Stack>
+          <Typography sx={{ fontSize: 22, fontWeight: 600 }}>Before you start</Typography>
 
-        <div className="wizard-card">
-          <Typography sx={{ fontSize: 12, color: "var(--text-tertiary)", mb: 1 }}>
-            Review the legal documents
+          <Typography color="text.secondary" sx={{ fontSize: 13, lineHeight: 1.6 }}>
+            QuietClaw is experimental local-first software. It processes data on your device by default.
+            If you enable a third-party AI provider, selected prompts and context may be sent to that provider.
+            Sensitive information may be exposed due to software defects, device compromise, provider handling,
+            prompt injection, logs, caches, or other failure modes. Local working data is designed to expire
+            after ~24 hours but may persist longer. The software is provided as-is, without warranties.
           </Typography>
-          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-            <button className="wizard-btn wizard-btn-outline" onClick={() => openLegalDocument("TERMS.md")} type="button">
-              Terms of Use
-            </button>
-            <button className="wizard-btn wizard-btn-outline" onClick={() => openLegalDocument("PRIVACY.md")} type="button">
-              Privacy Notice
-            </button>
-            <button className="wizard-btn wizard-btn-outline" onClick={() => openLegalDocument("RISK_DISCLOSURE.md")} type="button">
-              Risk Disclosure
-            </button>
-            <button className="wizard-btn wizard-btn-outline" onClick={() => openLegalDocument("RETENTION_AND_DELETION.md")} type="button">
-              Retention and Deletion
-            </button>
+
+          <Box sx={{ display: "flex", gap: 0.75, flexWrap: "wrap", alignItems: "center" }}>
+            <Typography sx={{ fontSize: 11, color: "var(--text-tertiary)", mr: 0.5 }}>Review:</Typography>
+            <button className="wizard-btn wizard-btn-outline sm" onClick={() => openLegalDocument("TERMS.md")} type="button">Terms</button>
+            <button className="wizard-btn wizard-btn-outline sm" onClick={() => openLegalDocument("PRIVACY.md")} type="button">Privacy</button>
+            <button className="wizard-btn wizard-btn-outline sm" onClick={() => openLegalDocument("RISK_DISCLOSURE.md")} type="button">Risks</button>
+            <button className="wizard-btn wizard-btn-outline sm" onClick={() => openLegalDocument("RETENTION_AND_DELETION.md")} type="button">Retention</button>
           </Box>
-        </div>
 
-        <label className="wizard-check">
-          <Checkbox checked={acceptedTerms} onChange={(event) => setAcceptedTerms(event.target.checked)} />
-          I accept the Terms of Use.
-        </label>
-        <label className="wizard-check">
-          <Checkbox checked={acknowledgedPrivacy} onChange={(event) => setAcknowledgedPrivacy(event.target.checked)} />
-          I have read the Privacy Notice.
-        </label>
-        <label className="wizard-check">
-          <Checkbox checked={acknowledgedRisk} onChange={(event) => setAcknowledgedRisk(event.target.checked)} />
-          I understand QuietClaw is experimental and that privacy, security, and correctness cannot be guaranteed.
-        </label>
-        <label className="wizard-check">
-          <Checkbox checked={acknowledgedRetention} onChange={(event) => setAcknowledgedRetention(event.target.checked)} />
-          I understand local data is intended to expire after about 24 hours, but may persist longer in some cases.
-        </label>
+          <Stack spacing={0.25}>
+            <label className="wizard-check"><Checkbox size="small" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} /><span style={{ fontSize: 13 }}>I accept the Terms of Use.</span></label>
+            <label className="wizard-check"><Checkbox size="small" checked={acknowledgedPrivacy} onChange={(e) => setAcknowledgedPrivacy(e.target.checked)} /><span style={{ fontSize: 13 }}>I have read the Privacy Notice.</span></label>
+            <label className="wizard-check"><Checkbox size="small" checked={acknowledgedRisk} onChange={(e) => setAcknowledgedRisk(e.target.checked)} /><span style={{ fontSize: 13 }}>I understand QuietClaw is experimental — privacy, security, and correctness are not guaranteed.</span></label>
+            <label className="wizard-check"><Checkbox size="small" checked={acknowledgedRetention} onChange={(e) => setAcknowledgedRetention(e.target.checked)} /><span style={{ fontSize: 13 }}>Local data expires after ~24h but may persist longer.</span></label>
+          </Stack>
 
-        <label className="wizard-check optional">
-          <Checkbox checked={analyticsOptIn} onChange={(event) => setAnalyticsOptIn(event.target.checked)} />
-          Share anonymous usage analytics.
-        </label>
-        <label className="wizard-check optional">
-          <Checkbox checked={crashPrepOptIn} onChange={(event) => setCrashPrepOptIn(event.target.checked)} />
-          Allow crash reports to be prepared for review before upload.
-        </label>
+          <Stack spacing={0.25}>
+            <label className="wizard-check optional"><Checkbox size="small" checked={analyticsOptIn} onChange={(e) => setAnalyticsOptIn(e.target.checked)} /><span style={{ fontSize: 12, color: "var(--text-secondary)" }}>Share anonymous usage analytics.</span></label>
+            <label className="wizard-check optional"><Checkbox size="small" checked={crashPrepOptIn} onChange={(e) => setCrashPrepOptIn(e.target.checked)} /><span style={{ fontSize: 12, color: "var(--text-secondary)" }}>Allow crash reports to be prepared for review.</span></label>
+          </Stack>
 
         <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>
           <button

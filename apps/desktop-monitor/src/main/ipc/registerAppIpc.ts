@@ -379,10 +379,30 @@ export function registerAppIpc(runtime: DesktopAppRuntime): void {
     }
   });
   ipcMain.handle(IPC_CHANNELS.openLegalDocument, async (_event, documentId: LegalDocumentId) => {
-    const result = await shell.openPath(resolveLegalDocumentPath(documentId));
-    if (result) {
-      throw new Error(result);
+    // Try to open the local file first (works in development)
+    const localPath = resolveLegalDocumentPath(documentId);
+    try {
+      await import("node:fs/promises").then((fs) => fs.access(localPath));
+      const result = await shell.openPath(localPath);
+      if (!result) return;
+    } catch {
+      // File not found locally (packaged app) — fall through
     }
+    // Fallback: open in GitHub (replace with actual repo URL when published)
+    const docMap: Record<string, string> = {
+      "TERMS.md": "Terms of Use",
+      "PRIVACY.md": "Privacy Notice",
+      "RISK_DISCLOSURE.md": "Risk Disclosure",
+      "RETENTION_AND_DELETION.md": "Retention and Deletion",
+    };
+    // For now, show a dialog with the document name since we can't resolve the file
+    const { dialog: dialogModule } = await import("electron");
+    await dialogModule.showMessageBox({
+      type: "info",
+      title: docMap[documentId] ?? documentId,
+      message: `The document "${docMap[documentId] ?? documentId}" is available at docs/legal/${documentId} in the QuietClaw source repository.`,
+      buttons: ["OK"],
+    });
   });
   ipcMain.handle(IPC_CHANNELS.getTelegramStatus, async () => runtime.getTelegramStatus());
   ipcMain.handle(IPC_CHANNELS.getDaemonStatus, async () => runtime.getDaemonStatus());
