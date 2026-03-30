@@ -12,12 +12,20 @@ import {
   clearConfigJsonFiles,
   getConfigDir,
   resolvePackagedAppPath,
+  seedOnboardedConfig,
   spawnTsxScript,
 } from "./runtime";
 
 const SCREENSHOT_DIR = path.resolve("test-results/visual-walkthrough");
 const APP_PATH = resolvePackagedAppPath();
-const TG_TOKEN = process.env.QUIETCLAW_TEST_TG_TOKEN ?? "";
+// Load .env if the env var isn't already set
+const TG_TOKEN = process.env.QUIETCLAW_TEST_TG_TOKEN || (() => {
+  try {
+    const envFile = fs.readFileSync(path.resolve(".env"), "utf-8");
+    const match = envFile.match(/QUIETCLAW_TEST_TG_TOKEN=(.+)/);
+    return match?.[1]?.trim() ?? "";
+  } catch { return ""; }
+})();
 const CONFIG_DIR = getConfigDir();
 
 function clearConfig() {
@@ -186,10 +194,9 @@ test.describe.serial("Phase 2 — Dashboard with Simulator", () => {
   test.beforeAll(async () => {
     test.skip(!TG_TOKEN, "Requires QUIETCLAW_TEST_TG_TOKEN.");
     ensureScreenshotDir();
-    // DON'T clear config — reuse config from Phase 1 which has the
-    // properly encrypted bot token from the wizard's real verification flow.
-    // If Phase 1 completed, telegram.onboardingState is "ready" with a valid token.
-    // If Phase 1 skipped to dashboard (token already known), the existing config works.
+    // Seed a fully onboarded config so the app goes straight to dashboard.
+    // Phase 1's config isn't reliable because it may have been cleared.
+    seedOnboardedConfig();
   });
 
   test.afterAll(async () => {

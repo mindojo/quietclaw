@@ -11,12 +11,15 @@ export type FakeTelegramUpdate = {
 export class FakeTelegramBot implements TelegramBotLike {
   private updates: FakeTelegramUpdate[];
   private readonly getMeResult: { ok: boolean; username: string } | Error;
+  private readonly getChatResult: { ok: boolean; chatId: number; type?: string } | Error | null;
 
   constructor(opts: {
     getMeResult?: { ok: boolean; username: string } | Error;
+    getChatResult?: { ok: boolean; chatId: number; type?: string } | Error | null;
     updates?: FakeTelegramUpdate[];
   } = {}) {
     this.getMeResult = opts.getMeResult ?? { ok: true, username: "test_bot" };
+    this.getChatResult = opts.getChatResult ?? null;
     this.updates = opts.updates ?? [];
   }
 
@@ -26,6 +29,22 @@ export class FakeTelegramBot implements TelegramBotLike {
     }
 
     return this.getMeResult;
+  }
+
+  async getChat(chatId: number): Promise<{ ok: boolean; chatId: number; type?: string }> {
+    if (this.getChatResult instanceof Error) {
+      throw this.getChatResult;
+    }
+
+    if (this.getChatResult) {
+      return this.getChatResult;
+    }
+
+    return {
+      ok: true,
+      chatId,
+      type: "private",
+    };
   }
 
   async getUpdates(offset?: number): Promise<FakeTelegramUpdate[]> {

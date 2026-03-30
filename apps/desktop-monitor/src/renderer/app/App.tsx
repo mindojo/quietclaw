@@ -297,7 +297,9 @@ export function App(): JSX.Element {
       if (result.ok) {
         setTelegramTokenDraft("");
         pushToast({
-          message: "Telegram bot verified. Send /start to complete setup.",
+          message: result.state === "ready"
+            ? "Telegram bot verified and existing chat recovered."
+            : "Telegram bot verified. Send /start to complete setup.",
           severity: "success",
         });
         return;

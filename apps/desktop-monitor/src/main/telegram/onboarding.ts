@@ -71,7 +71,9 @@ export class TelegramOnboarding {
     }
   }
 
-  async setBotToken(token: string): Promise<{ ok: boolean; error?: string }> {
+  async setBotToken(
+    token: string,
+  ): Promise<{ ok: boolean; state?: TelegramOnboardingState; error?: string }> {
     const nextToken = token.trim();
     if (!nextToken) {
       return {
@@ -85,31 +87,33 @@ export class TelegramOnboarding {
     try {
       const me = await nextBot.getMe();
       const encrypted = encryptTelegramBotToken(nextToken);
+      const currentConfig = this.configStore.getTelegramConfig();
+
+      this.stopPolling();
       this.bot = nextBot;
       this.updateOffset = 0;
+      this.botUsername = me.username;
+      this.chatId = null;
 
-      // Check if this bot already has a /start chat from a previous session
-      const currentConfig = this.configStore.getTelegramConfig();
-      const sameBotReconnecting = currentConfig.botUsername === me.username && currentConfig.chatId !== null;
+      const recoveredChatId = await this.recoverVerifiedChatId(nextBot, me.username, currentConfig.chatId);
 
-      if (sameBotReconnecting) {
-        // Same bot, already has a chatId — skip /start flow
-        this.chatId = currentConfig.chatId;
+      if (recoveredChatId !== null) {
+        this.chatId = recoveredChatId;
         this.configStore.setTelegramConfig((current) => ({
           ...current,
           encryptedBotToken: encrypted.encryptedToken,
           botUsername: me.username,
+          chatId: recoveredChatId,
           onboardingState: "ready",
           lastVerifiedAt: new Date().toISOString(),
         }));
         this.transition("ready", {
           botUsername: me.username,
-          chatId: currentConfig.chatId!,
+          chatId: recoveredChatId,
         });
-        return { ok: true };
+        return { ok: true, state: "ready" };
       }
 
-      // New bot or no prior chatId — need /start flow
       this.configStore.setTelegramConfig((current) => ({
         ...current,
         encryptedBotToken: encrypted.encryptedToken,
@@ -121,8 +125,11 @@ export class TelegramOnboarding {
       this.transition("waiting_for_start", {
         botUsername: me.username,
       });
-      this.startPolling();
-      return { ok: true };
+      await this.pollOnce();
+      if (this.state !== "ready") {
+        this.startPolling();
+      }
+      return { ok: true, state: this.state };
     } catch (error) {
       return {
         ok: false,
@@ -213,6 +220,7 @@ export class TelegramOnboarding {
           ...current,
           chatId: resolvedChatId,
           onboardingState: "ready",
+          lastVerifiedAt: new Date().toISOString(),
         }));
         this.transition("ready", {
           ...(this.botUsername ? { botUsername: this.botUsername } : {}),
@@ -267,6 +275,29 @@ export class TelegramOnboarding {
     }
 
     return privateChatFallback;
+  }
+
+  private async recoverVerifiedChatId(
+    bot: TelegramBotLike,
+    botUsername: string,
+    storedChatId: number | null,
+  ): Promise<number | null> {
+    if (storedChatId === null) {
+      return null;
+    }
+
+    const currentConfig = this.configStore.getTelegramConfig();
+    if (currentConfig.botUsername !== botUsername) {
+      return null;
+    }
+
+    try {
+      const chat = await bot.getChat(storedChatId);
+      const isPrivateChat = chat.type === "private" || typeof chat.type === "undefined";
+      return isPrivateChat ? chat.chatId : null;
+    } catch {
+      return null;
+    }
   }
 }
 

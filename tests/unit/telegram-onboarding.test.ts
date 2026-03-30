@@ -43,6 +43,7 @@ describe("TelegramOnboarding", () => {
     const result = await onboarding.setBotToken("token");
 
     expect(result.ok).toBe(true);
+    expect(result.state).toBe("waiting_for_start");
     expect(config.botUsername).toBe("quietclaw_bot");
     expect(changes).toContain("waiting_for_start");
     onboarding.destroy();
@@ -110,6 +111,7 @@ describe("TelegramOnboarding", () => {
     const result = await onboarding.setBotToken("token");
 
     expect(result.ok).toBe(true);
+    expect(result.state).toBe("ready");
     await flushAsyncWork();
     expect(onboarding.getStatus()).toEqual({
       state: "ready",
@@ -154,6 +156,7 @@ describe("TelegramOnboarding", () => {
     const result = await onboarding.setBotToken("token");
 
     expect(result.ok).toBe(true);
+    expect(result.state).toBe("ready");
     await flushAsyncWork();
     expect(onboarding.getStatus()).toEqual({
       state: "ready",
@@ -198,12 +201,96 @@ describe("TelegramOnboarding", () => {
     const result = await onboarding.setBotToken("token");
 
     expect(result.ok).toBe(true);
+    expect(result.state).toBe("waiting_for_start");
     await flushAsyncWork();
     expect(onboarding.getStatus()).toEqual({
       state: "waiting_for_start",
       botUsername: "quietclaw_bot",
       chatId: null,
     });
+    onboarding.destroy();
+  });
+
+  test("re-verifies the stored chat before skipping the activation step", async () => {
+    const config = {
+      encryptedBotToken: null,
+      botUsername: "quietclaw_bot",
+      chatId: 777,
+      onboardingState: "waiting_for_start" as TelegramOnboardingState,
+      lastVerifiedAt: null,
+    };
+    const bot = new FakeTelegramBot({
+      getMeResult: { ok: true, username: "quietclaw_bot" },
+      getChatResult: { ok: true, chatId: 777, type: "private" },
+      updates: [],
+    });
+
+    const onboarding = new TelegramOnboarding(
+      () => undefined,
+      {
+        getTelegramConfig: () => config,
+        setTelegramConfig: (updater) => {
+          Object.assign(config, updater(config));
+        },
+      },
+      () => bot,
+    );
+
+    const result = await onboarding.setBotToken("token");
+
+    expect(result).toEqual({
+      ok: true,
+      state: "ready",
+    });
+    expect(onboarding.getStatus()).toEqual({
+      state: "ready",
+      botUsername: "quietclaw_bot",
+      chatId: 777,
+    });
+    expect(config.chatId).toBe(777);
+    expect(config.onboardingState).toBe("ready");
+    expect(config.lastVerifiedAt).not.toBeNull();
+    onboarding.destroy();
+  });
+
+  test("falls back to waiting when the stored chat can no longer be verified", async () => {
+    const config = {
+      encryptedBotToken: null,
+      botUsername: "quietclaw_bot",
+      chatId: 777,
+      onboardingState: "ready" as TelegramOnboardingState,
+      lastVerifiedAt: null,
+    };
+    const bot = new FakeTelegramBot({
+      getMeResult: { ok: true, username: "quietclaw_bot" },
+      getChatResult: new Error("chat not found"),
+      updates: [],
+    });
+
+    const onboarding = new TelegramOnboarding(
+      () => undefined,
+      {
+        getTelegramConfig: () => config,
+        setTelegramConfig: (updater) => {
+          Object.assign(config, updater(config));
+        },
+      },
+      () => bot,
+    );
+
+    const result = await onboarding.setBotToken("token");
+
+    expect(result).toEqual({
+      ok: true,
+      state: "waiting_for_start",
+    });
+    expect(onboarding.getStatus()).toEqual({
+      state: "waiting_for_start",
+      botUsername: "quietclaw_bot",
+      chatId: null,
+    });
+    expect(config.chatId).toBeNull();
+    expect(config.onboardingState).toBe("token_entered");
     onboarding.destroy();
   });
 });

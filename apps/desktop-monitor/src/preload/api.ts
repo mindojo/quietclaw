@@ -123,6 +123,7 @@ export type BootstrapState = {
 
 export type TelegramTokenResult = {
   ok: boolean;
+  state?: "not_configured" | "token_entered" | "waiting_for_start" | "ready";
   error?: string;
 };
 

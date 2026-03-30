@@ -29,8 +29,18 @@ type TelegramSendMessageResponse = {
   description?: string;
 };
 
+type TelegramGetChatResponse = {
+  ok: boolean;
+  result?: {
+    id?: number;
+    type?: string;
+  };
+  description?: string;
+};
+
 export interface TelegramBotLike {
   getMe(): Promise<{ ok: boolean; username: string }>;
+  getChat(chatId: number): Promise<{ ok: boolean; chatId: number; type?: string }>;
   getUpdates(
     offset?: number,
   ): Promise<Array<{
@@ -58,6 +68,29 @@ export class TelegramBot implements TelegramBotLike {
     return {
       ok: true,
       username: payload.result.username,
+    };
+  }
+
+  async getChat(chatId: number): Promise<{ ok: boolean; chatId: number; type?: string }> {
+    const response = await fetch(this.getUrl("getChat"), {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        chat_id: chatId,
+      }),
+    });
+    const payload = await this.readJson<TelegramGetChatResponse>(response);
+
+    if (!response.ok || !payload.ok || typeof payload.result?.id !== "number") {
+      throw new Error(payload.description ?? "Telegram chat verification failed.");
+    }
+
+    return {
+      ok: true,
+      chatId: payload.result.id,
+      type: payload.result.type,
     };
   }
 

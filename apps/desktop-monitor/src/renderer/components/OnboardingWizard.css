@@ -118,6 +118,57 @@
   background: var(--green);
 }
 
+.token-example-card {
+  background: linear-gradient(180deg, rgba(58, 107, 53, 0.06), rgba(58, 107, 53, 0.02));
+  border: 1px solid rgba(58, 107, 53, 0.16);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  margin: 0 0 14px;
+}
+
+.token-example-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--green);
+  margin-bottom: 8px;
+}
+
+.token-example-copy {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+
+.token-example-string {
+  display: block;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px dashed rgba(58, 107, 53, 0.25);
+  border-radius: 12px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.65;
+  color: #1f2a1d;
+  word-break: break-all;
+}
+
+.token-example-mask {
+  display: inline-block;
+  filter: blur(2.4px);
+  opacity: 0.78;
+  user-select: none;
+}
+
+.token-example-note {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
 .info-tip {
   display: flex;
   gap: 8px;

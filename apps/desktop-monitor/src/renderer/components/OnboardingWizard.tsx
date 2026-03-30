@@ -103,6 +103,12 @@ export function OnboardingWizard({
     }
   }, [legalAccepted, step]);
 
+  useEffect(() => {
+    if (step === 4 && telegramReady) {
+      setStep(5);
+    }
+  }, [step, telegramReady]);
+
   function buildLegalRecord(overrides?: Partial<LegalAcceptanceRecord>): LegalAcceptanceRecord {
     return {
       ...legal,
@@ -218,7 +224,7 @@ export function OnboardingWizard({
     try {
       const result = await onTelegramTokenSet(trimmed);
       if (result.ok) {
-        setStep(4);
+        setStep(result.state === "ready" ? 5 : 4);
         return;
       }
 
@@ -383,6 +389,28 @@ export function OnboardingWizard({
     );
   }
 
+  function renderTokenExample(): JSX.Element {
+    return (
+      <div className="token-example-card">
+        <div className="token-example-label">Example only</div>
+        <div className="token-example-copy">
+          Copy your own full token from the BotFather chat in Telegram. Do not copy this sample.
+        </div>
+        <code className="token-example-string">
+          731548209:
+          <span>AAf9pLm3</span>
+          <span className="token-example-mask">Qx7nTr4V</span>
+          <span>cK2wMz8H</span>
+          <span className="token-example-mask">jD5sLp1R</span>
+          <span>uY6tNv0BaC</span>
+        </code>
+        <div className="token-example-note">
+          BotFather gives you the real token once. Copy it from Telegram, then paste it back into QuietClaw.
+        </div>
+      </div>
+    );
+  }
+
   if (step === 6) {
     return renderFrame(
       <Box
@@ -533,7 +561,7 @@ export function OnboardingWizard({
           {renderTelegramMock("BotFather", "B", [
             { text: "Good. Now let's choose a username. It must end in 'bot'." },
             { text: "mysummaries_bot", user: true },
-            { text: "Done! Congratulations on your new bot. You will find it at t.me/mysummaries_bot.\n\nUse this token to access the HTTP API:\n8317643…:AAH_kx9mQ3vZ…\n\nKeep your token secure and store it safely." },
+            { text: "Done! Congratulations on your new bot. You will find it at t.me/mysummaries_bot.\n\nUse this token to access the HTTP API:\n8317643…:AAH_kx9…Q3vZ…\n\nKeep your token secure and store it safely." },
           ])}
           <p style={{ fontSize: 12, color: "var(--text-tertiary)", margin: "6px 0 0", fontStyle: "italic" }}>
             ↑ Tap the token in BotFather's message to copy it — you'll paste it in the next step.
@@ -558,10 +586,28 @@ export function OnboardingWizard({
           STEP 3
         </Typography>
         <Typography sx={{ fontSize: 22, fontWeight: 500, mb: 0.5 }}>Paste the bot token</Typography>
-        <Typography color="text.secondary" sx={{ fontSize: 14, lineHeight: 1.6, mb: 2 }}>
-          Paste the token exactly as BotFather returned it. QuietClaw verifies it in Electron main
-          and does not need you to store it anywhere else manually.
+        <Typography color="text.secondary" sx={{ fontSize: 14, lineHeight: 1.6, mb: 1.5 }}>
+          Copy your full token from the BotFather chat in Telegram and paste it below.
         </Typography>
+
+        <div className="wizard-card" style={{ marginBottom: 12 }}>
+          <Typography sx={{ fontSize: 11, fontWeight: 600, color: "var(--text-warning)", letterSpacing: 0.5, mb: 0.5 }}>
+            EXAMPLE ONLY
+          </Typography>
+          <Typography sx={{ fontSize: 12, color: "var(--text-secondary)", mb: 1 }}>
+            Copy your own full token from the BotFather chat in Telegram. Do not copy this sample.
+          </Typography>
+          <Box sx={{
+            fontFamily: "var(--font-mono)", fontSize: 13, fontWeight: 500,
+            p: 1.5, background: "var(--bg-secondary)", borderRadius: "var(--radius)",
+            border: "1px solid var(--border-light)", wordBreak: "break-all",
+          }}>
+            731548209:AAf9pLm3██████cK2wMz8H████████uY6tNv0BaC
+          </Box>
+          <Typography sx={{ fontSize: 11, color: "var(--text-tertiary)", mt: 0.75 }}>
+            BotFather gives you the real token once. Copy it from Telegram, then paste it back into QuietClaw.
+          </Typography>
+        </div>
 
         {tokenError ? <div className="error-banner">⚠ {tokenError}</div> : null}
 
@@ -586,12 +632,9 @@ export function OnboardingWizard({
             value={tokenDraft}
             variant="outlined"
           />
-          <Typography color="text.secondary" sx={{ fontSize: 12, mt: 1 }}>
-            Format hint: <code>123456789:AAExampleLongTokenFromBotFather</code>
-          </Typography>
-          <div className="info-tip">
-            <span>i</span>
-            <span>Your token stays in the main process and is used only for Telegram delivery.</span>
+          <div className="info-tip" style={{ margin: "8px 0 0" }}>
+            <span style={{ flexShrink: 0 }}>🔒</span>
+            <span>Your token is stored locally and used only for Telegram delivery. It never leaves this device.</span>
           </div>
         </div>
 
@@ -616,6 +659,8 @@ export function OnboardingWizard({
         <Typography color="text.secondary" sx={{ fontSize: 13, lineHeight: 1.6, mb: 1.5 }}>
           Open your bot in Telegram and press <strong>Start</strong> to give QuietClaw permission to message you. If you already started it earlier, send any new private message so QuietClaw can recover the chat again.
         </Typography>
+
+        {renderTokenExample()}
 
         <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start", flexWrap: "wrap" }}>
           {/* Left: action + mock */}
