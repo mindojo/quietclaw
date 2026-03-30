@@ -7,29 +7,21 @@ import {
 } from "@playwright/test";
 import fs from "node:fs";
 import path from "node:path";
-import { ChildProcess, spawn } from "node:child_process";
+import { ChildProcess } from "node:child_process";
+import {
+  clearConfigJsonFiles,
+  getConfigDir,
+  resolvePackagedAppPath,
+  spawnTsxScript,
+} from "./runtime";
 
 const SCREENSHOT_DIR = path.resolve("test-results/visual-walkthrough");
-const APP_PATH = path.resolve(
-  "apps/desktop-monitor/out/QuietClaw-darwin-arm64/QuietClaw.app/Contents/MacOS/QuietClaw"
-);
+const APP_PATH = resolvePackagedAppPath();
 const TG_TOKEN = process.env.QUIETCLAW_TEST_TG_TOKEN ?? "";
-const CONFIG_DIR = path.join(
-  process.env.HOME ?? "/tmp",
-  "Library/Application Support/QuietClaw"
-);
+const CONFIG_DIR = getConfigDir();
 
 function clearConfig() {
-  try {
-    const files = fs.readdirSync(CONFIG_DIR);
-    for (const file of files) {
-      if (file.endsWith(".json")) {
-        fs.unlinkSync(path.join(CONFIG_DIR, file));
-      }
-    }
-  } catch {
-    // Dir may not exist
-  }
+  clearConfigJsonFiles();
 }
 
 function ensureScreenshotDir() {
@@ -45,6 +37,14 @@ async function shot(page: Page, name: string) {
 
 async function delay(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
+}
+
+async function acceptRequiredLegalChecks(page: Page) {
+  for (let i = 0; i < 4; i += 1) {
+    await page.getByRole("checkbox").nth(i).check({ force: true });
+  }
+  await page.getByRole("button", { name: /agree and continue/i }).click();
+  await delay(1000);
 }
 
 /** Resolve a chat_id for this bot by calling getUpdates on the Telegram API. */
@@ -99,19 +99,13 @@ test.describe.serial("Phase 1 — Wizard Walkthrough", () => {
     await delay(2000);
 
     // ASSERT: Legal gate is visible
-    await expect(page.locator("text=Before you continue")).toBeVisible({ timeout: 5000 });
+    await expect(page.locator("text=Before you start")).toBeVisible({ timeout: 5000 });
     await shot(page, "01-legal-gate");
   });
 
   test("02 — Accept legal → advances to Step 1", async () => {
-    const checkbox = page.locator('input[type="checkbox"]');
-    await checkbox.check({ force: true });
-    await delay(300);
+    await acceptRequiredLegalChecks(page);
     await shot(page, "02-legal-checked");
-
-    const continueBtn = page.getByRole("button", { name: /continue/i });
-    await continueBtn.click();
-    await delay(1000);
 
     // ASSERT: Now on step 1
     await expect(page.locator("text=STEP 1")).toBeVisible({ timeout: 5000 });
@@ -149,6 +143,7 @@ test.describe.serial("Phase 1 — Wizard Walkthrough", () => {
   });
 
   test("06 — Step 3: valid token → advances past Step 3", async () => {
+    test.skip(!TG_TOKEN, "Requires QUIETCLAW_TEST_TG_TOKEN.");
     const input = page.locator('input[type="text"]').first();
     await input.fill("");
     await input.fill(TG_TOKEN);
@@ -189,6 +184,7 @@ test.describe.serial("Phase 2 — Dashboard with Simulator", () => {
   let simulator: ChildProcess | null = null;
 
   test.beforeAll(async () => {
+    test.skip(!TG_TOKEN, "Requires QUIETCLAW_TEST_TG_TOKEN.");
     ensureScreenshotDir();
     // DON'T clear config — reuse config from Phase 1 which has the
     // properly encrypted bot token from the wizard's real verification flow.
@@ -226,8 +222,6 @@ test.describe.serial("Phase 2 — Dashboard with Simulator", () => {
   });
 
   test("09 — Start daemon + simulator → groups hydrate", async () => {
-    const projectRoot = path.resolve(__dirname, "../..");
-
     // The app overwrites daemon.port in config after binding.
     // Read it back to find the actual port.
     await delay(3000);
@@ -247,10 +241,8 @@ test.describe.serial("Phase 2 — Dashboard with Simulator", () => {
     console.log(`[E2E] Simulator targeting daemon on port ${daemonPort}`);
 
     // Start simulator pointing at the app's actual daemon port
-    simulator = spawn("npx", ["tsx", "services/simulator/src/index.ts"], {
-      cwd: projectRoot,
-      stdio: "pipe",
-      env: { ...process.env, DAEMON_URL: `http://127.0.0.1:${daemonPort}` },
+    simulator = spawnTsxScript("services/simulator/src/index.ts", {
+      DAEMON_URL: `http://127.0.0.1:${daemonPort}`,
     });
 
     // Wait for backfill (simulator sends 50-100 messages in first ~8s)
@@ -345,12 +337,7 @@ test.describe.serial("Phase 3 — Invalid Token Handling", () => {
     await delay(2000);
 
     // Accept legal gate
-    const checkbox = page.locator('input[type="checkbox"]');
-    await checkbox.check({ force: true });
-    await delay(300);
-    const continueBtn = page.getByRole("button", { name: /continue/i });
-    await continueBtn.click();
-    await delay(1000);
+    await acceptRequiredLegalChecks(page);
 
     // Navigate to step 3 (paste token)
     await page.getByRole("button", { name: /continue/i }).click(); // step 1 → 2

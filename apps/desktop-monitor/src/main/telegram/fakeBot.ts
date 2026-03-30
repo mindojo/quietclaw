@@ -3,7 +3,7 @@ import type { TelegramBotLike } from "./bot";
 export type FakeTelegramUpdate = {
   update_id: number;
   message?: {
-    chat: { id: number };
+    chat: { id: number; type?: string };
     text?: string;
   };
 };

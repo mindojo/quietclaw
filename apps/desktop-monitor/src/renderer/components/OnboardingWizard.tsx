@@ -609,16 +609,19 @@ export function OnboardingWizard({
         </Typography>
         <Typography sx={{ fontSize: 22, fontWeight: 500, mb: 0.5 }}>Activate your bot</Typography>
         <Typography color="text.secondary" sx={{ fontSize: 13, lineHeight: 1.6, mb: 1.5 }}>
-          Open your bot in Telegram and press <strong>Start</strong> to give QuietClaw permission to message you.
+          Open your bot in Telegram and press <strong>Start</strong> to give QuietClaw permission to message you. If you already started it earlier, send any new private message so QuietClaw can recover the chat again.
         </Typography>
 
         <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start", flexWrap: "wrap" }}>
           {/* Left: action + mock */}
           <Box sx={{ flex: "1 1 300px" }}>
             <button className="wizard-btn" onClick={() => openExternal(botLink)} type="button" style={{ marginBottom: 8 }}>
-              Open my bot in Telegram →
+              Open my bot in Telegram
             </button>
-
+            <Typography color="text.secondary" sx={{ fontSize: 13, lineHeight: 1.6, mb: 1.25 }}>
+              If you already pressed <strong>Start</strong> in the past, send the bot any new private
+              message now so QuietClaw can recover the chat again.
+            </Typography>
             {/* Compact Telegram mock */}
             <div className="tg-mock" style={{ padding: 12 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8, fontWeight: 500, fontSize: 13 }}>
@@ -642,7 +645,7 @@ export function OnboardingWizard({
             {!telegramReady ? (
               <div className="info-tip" style={{ margin: "0 0 8px" }}>
                 <span>⏳</span>
-                <span style={{ fontSize: 12 }}>Waiting for <code>/start</code> in Telegram…</span>
+                <span style={{ fontSize: 12 }}>Waiting for a private message from this bot chat...</span>
               </div>
             ) : (
               <div className="success-banner" style={{ margin: "0 0 8px" }}>

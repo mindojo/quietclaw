@@ -12,6 +12,7 @@
    - npm run dev:app
 8. A clean clone on macOS and Windows must be able to build installers.
 9. Do not add unnecessary native modules.
-10. The app has exactly one monitor — no multi-monitor UI or data model.
+10. The app has exactly one monitor - no multi-monitor UI or data model.
 11. Keep watched groups to one or more groups and Telegram outbound to exactly one chat.
 12. Preserve truthful UX copy around partial group discovery and daemon visibility.
+13. Keep `git` and `rg` available on developer and agent workstations for repo operations.

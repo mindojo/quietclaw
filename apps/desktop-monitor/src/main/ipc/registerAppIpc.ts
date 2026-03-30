@@ -25,10 +25,14 @@ import {
   DEFAULT_URGENT_TEMPLATE,
 } from "../config/promptDefaults.js";
 import {
+  detectAiProviders,
+  parseClaudeAuthStatus,
+  parseCodexAuthStatus,
+} from "../ai/providerDetection.js";
+import {
   LEGAL_BUNDLE_VERSION,
   LegalAcceptanceRecordSchema,
-} from "../config/schema";
-import { readAppConfig, updateAppConfig } from "../config/store";
+} from "../config/schema";import { readAppConfig, updateAppConfig } from "../config/store";
 import { log } from "../logging";
 import type { DesktopAppRuntime } from "../startup/bootstrap";
 import { IPC_CHANNELS } from "./channels";
@@ -49,7 +53,6 @@ export const rendererEventBus = {
 function nowIso(): string {
   return new Date().toISOString();
 }
-
 function createId(): string {
   return `${Date.now()}-${Math.random().toString(16).slice(2, 10)}`;
 }
@@ -303,56 +306,44 @@ export function registerAppIpc(runtime: DesktopAppRuntime): void {
 
     const checkClaudeAuth = (): Promise<{ loggedIn: boolean; detail: string }> =>
       new Promise((resolve) => {
-        exec("claude auth status", shellExecOptions({ timeout: 10_000 }), (error, stdout) => {
-          if (error) {
-            resolve({ loggedIn: false, detail: "Not authenticated" });
-            return;
-          }
-          try {
-            const parsed = JSON.parse(stdout.toString()) as { loggedIn?: boolean; email?: string; subscriptionType?: string };
-            if (parsed.loggedIn) {
-              const info = [parsed.email, parsed.subscriptionType].filter(Boolean).join(" · ");
-              resolve({ loggedIn: true, detail: info || "Authenticated" });
-            } else {
-              resolve({ loggedIn: false, detail: "Not logged in" });
+        exec(
+          "claude auth status",
+          shellExecOptions({ timeout: 10_000 }),
+          (error, stdout, stderr) => {
+            const combined = [stdout.toString(), stderr.toString()].filter(Boolean).join("\n").trim();
+
+            if (error && !combined) {
+              resolve({ loggedIn: false, detail: "Not authenticated" });
+              return;
             }
-          } catch {
-            // Non-JSON output — check if stdout contains something useful
-            const out = stdout.toString().trim();
-            resolve({ loggedIn: out.length > 0, detail: out.slice(0, 100) || "Unknown status" });
-          }
-        });
+
+            resolve(parseClaudeAuthStatus(combined));
+          },
+        );
       });
 
     const checkCodexAuth = (): Promise<{ loggedIn: boolean; detail: string }> =>
       new Promise((resolve) => {
-        exec("codex login status", shellExecOptions({ timeout: 10_000 }), (error, stdout) => {
-          if (error) {
-            resolve({ loggedIn: false, detail: "Not authenticated" });
-            return;
-          }
-          const out = stdout.toString().trim();
-          const loggedIn = out.toLowerCase().includes("logged in");
-          resolve({ loggedIn, detail: out.slice(0, 100) || "Unknown status" });
-        });
+        exec(
+          "codex login status",
+          shellExecOptions({ timeout: 10_000 }),
+          (error, stdout, stderr) => {
+            const combined = [stdout.toString(), stderr.toString()].filter(Boolean).join("\n").trim();
+
+            if (error && !combined) {
+              resolve({ loggedIn: false, detail: "Not authenticated" });
+              return;
+            }
+
+            resolve(parseCodexAuthStatus(combined));
+          },
+        );
       });
 
-    const [claudeInstalled, codexInstalled] = await Promise.all([
-      checkInstalled("claude"),
-      checkInstalled("codex"),
-    ]);
-
-    const [claudeAuth, codexAuth] = await Promise.all([
-      claudeInstalled ? checkClaudeAuth() : Promise.resolve({ loggedIn: false, detail: "Not installed" }),
-      codexInstalled ? checkCodexAuth() : Promise.resolve({ loggedIn: false, detail: "Not installed" }),
-    ]);
-
-    return {
-      claude: claudeInstalled,
-      codex: codexInstalled,
-      claudeAuth,
-      codexAuth,
-    };
+    return detectAiProviders({
+      checkInstalled,
+      checkAuth: (provider) => (provider === "claude" ? checkClaudeAuth() : checkCodexAuth()),
+    });
   });
   ipcMain.handle(IPC_CHANNELS.setTelegramBotToken, async (_event, token: string) =>
     runtime.setTelegramBotToken(token),

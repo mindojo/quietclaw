@@ -1,11 +1,8 @@
 import { test, _electron as electron } from "@playwright/test";
-import path from "node:path";
+import { resolvePackagedAppPath } from "./runtime";
 
 test("diagnose blank page", async () => {
-  const appPath = path.resolve(
-    __dirname,
-    "../../apps/desktop-monitor/out/QuietClaw-darwin-arm64/QuietClaw.app/Contents/MacOS/QuietClaw"
-  );
+  const appPath = resolvePackagedAppPath();
 
   const electronApp = await electron.launch({
     executablePath: appPath,
