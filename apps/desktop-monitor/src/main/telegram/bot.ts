@@ -13,6 +13,7 @@ type TelegramGetUpdatesResponse = {
     message?: {
       chat?: {
         id: number;
+        type?: string;
       };
       text?: string;
     };
@@ -32,7 +33,10 @@ export interface TelegramBotLike {
   getMe(): Promise<{ ok: boolean; username: string }>;
   getUpdates(
     offset?: number,
-  ): Promise<Array<{ update_id: number; message?: { chat: { id: number }; text?: string } }>>;
+  ): Promise<Array<{
+    update_id: number;
+    message?: { chat: { id: number; type?: string }; text?: string };
+  }>>;
   sendMessage(
     chatId: number,
     text: string,
@@ -59,7 +63,10 @@ export class TelegramBot implements TelegramBotLike {
 
   async getUpdates(
     offset?: number,
-  ): Promise<Array<{ update_id: number; message?: { chat: { id: number }; text?: string } }>> {
+  ): Promise<Array<{
+    update_id: number;
+    message?: { chat: { id: number; type?: string }; text?: string };
+  }>> {
     const params = new URLSearchParams({
       timeout: "5",
     });
@@ -78,7 +85,10 @@ export class TelegramBot implements TelegramBotLike {
     return (payload.result ?? []).filter(
       (
         update,
-      ): update is { update_id: number; message?: { chat: { id: number }; text?: string } } =>
+      ): update is {
+        update_id: number;
+        message?: { chat: { id: number; type?: string }; text?: string };
+      } =>
         typeof update.update_id === "number",
     );
   }

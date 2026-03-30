@@ -323,7 +323,7 @@ export function App(): JSX.Element {
   const runnerStatus = runnerStatusQuery.data ?? [];
   const telegramReady = telegramStatus?.onboardingState === "ready";
   const legalAccepted = bootstrapQuery.data
-    ? isCurrentLegalAcceptance(bootstrapQuery.data.legal)
+    ? isCurrentLegalAcceptance(bootstrapQuery.data.legal.legalBundleVersion)
     : false;
   const updateBannerOpen = settings
     ? settings.updates.status === "update-available" ||

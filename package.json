@@ -14,7 +14,7 @@
     "build": "npm run build --workspaces",
     "lint": "npm run lint --workspaces",
     "test": "npm run test --workspaces && npm run test:e2e",
-    "test:e2e": "playwright test",
+    "test:e2e": "npm run build:app && playwright test",
     "dev:contract": "npm --workspace @quietclaw/gateway-contract run dev",
     "dev:daemon": "npm --workspace @quietclaw/live-daemon run dev",
     "dev:simulator": "npm --workspace @quietclaw/simulator run dev",

@@ -1,14 +1,12 @@
 import { test, expect, _electron as electron } from "@playwright/test";
-import path from "node:path";
+import { clearConfigJsonFiles, resolvePackagedAppPath } from "./runtime";
 
-const appDir = path.resolve(__dirname, "../../apps/desktop-monitor");
-const appPath = path.resolve(
-  appDir,
-  "out/QuietClaw-darwin-arm64/QuietClaw.app/Contents/MacOS/QuietClaw"
-);
+const appPath = resolvePackagedAppPath();
 
 test.describe("QuietClaw Desktop — Visual Verification", () => {
   test("app launches and renders the legal gate", async () => {
+    clearConfigJsonFiles();
+
     const electronApp = await electron.launch({
       executablePath: appPath,
       timeout: 30_000,
@@ -40,15 +38,14 @@ test.describe("QuietClaw Desktop — Visual Verification", () => {
     expect(bodyText.length).toBeGreaterThan(0);
 
     // Try to find the legal gate or loading state
-    const hasLegalGate = await window.locator("text=I understand and accept").count();
+    const hasLegalGate = await window.locator("text=Before you start").count();
     const hasLoading = await window.locator("text=Loading").count();
     const hasQuietClaw = await window.locator("text=QuietClaw").count();
     console.log(
       `Legal gate: ${hasLegalGate}, Loading: ${hasLoading}, QuietClaw text: ${hasQuietClaw}`
     );
 
-    // At least one of these should be present
-    expect(hasLegalGate + hasLoading + hasQuietClaw).toBeGreaterThan(0);
+    expect(hasLegalGate).toBeGreaterThan(0);
 
     await electronApp.close();
   });

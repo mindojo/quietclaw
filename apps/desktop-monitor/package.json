@@ -12,7 +12,7 @@
     "make": "electron-forge make",
     "lint": "echo lint-ok",
     "build": "echo build-ok",
-    "test": "echo test-ok"
+    "test": "cd ../.. && vitest run tests/unit/ai-provider-detection.test.ts tests/unit/telegram-onboarding.test.ts"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

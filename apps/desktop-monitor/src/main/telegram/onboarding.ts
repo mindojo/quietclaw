@@ -2,6 +2,8 @@ import { readAppConfig, updateAppConfig } from "../config/store";
 import { decryptTelegramBotToken, encryptTelegramBotToken } from "../config/store";
 import { TelegramBot, type TelegramBotLike } from "./bot";
 
+type TelegramUpdate = Awaited<ReturnType<TelegramBotLike["getUpdates"]>>[number];
+
 export type TelegramOnboardingState =
   | "not_configured"
   | "token_entered"
@@ -199,26 +201,24 @@ export class TelegramOnboarding {
 
     try {
       const updates = await this.bot.getUpdates(this.updateOffset > 0 ? this.updateOffset : undefined);
+      const resolvedChatId = this.resolveReadyChatId(updates);
 
       for (const update of updates) {
         this.updateOffset = Math.max(this.updateOffset, update.update_id + 1);
-        const messageText = update.message?.text?.trim();
-        const chatId = update.message?.chat.id;
+      }
 
-        if (messageText === "/start" && typeof chatId === "number") {
-          this.chatId = chatId;
-          this.configStore.setTelegramConfig((current) => ({
-            ...current,
-            chatId,
-            onboardingState: "ready",
-          }));
-          this.transition("ready", {
-            ...(this.botUsername ? { botUsername: this.botUsername } : {}),
-            chatId,
-          });
-          this.stopPolling();
-          break;
-        }
+      if (resolvedChatId !== null) {
+        this.chatId = resolvedChatId;
+        this.configStore.setTelegramConfig((current) => ({
+          ...current,
+          chatId: resolvedChatId,
+          onboardingState: "ready",
+        }));
+        this.transition("ready", {
+          ...(this.botUsername ? { botUsername: this.botUsername } : {}),
+          chatId: resolvedChatId,
+        });
+        this.stopPolling();
       }
     } catch {
       // Keep polling; onboarding should stay fail-closed until /start is observed.
@@ -239,6 +239,34 @@ export class TelegramOnboarding {
       this.chatId = detail.chatId;
     }
     this.onStateChanged(state, detail);
+  }
+
+  private resolveReadyChatId(updates: TelegramUpdate[]): number | null {
+    let privateChatFallback: number | null = null;
+
+    for (const update of updates) {
+      const message = update.message;
+      const chatId = message?.chat.id;
+      const chatType = message?.chat.type;
+      const messageText = message?.text?.trim();
+
+      if (typeof chatId !== "number") {
+        continue;
+      }
+
+      const isPrivateChat = chatType === "private";
+      const isStartMessage = messageText === "/start";
+
+      if (isStartMessage && (isPrivateChat || typeof chatType === "undefined")) {
+        return chatId;
+      }
+
+      if (isPrivateChat && privateChatFallback === null) {
+        privateChatFallback = chatId;
+      }
+    }
+
+    return privateChatFallback;
   }
 }
 

@@ -1,10 +1,7 @@
 import { test, expect, _electron as electron } from "@playwright/test";
-import path from "node:path";
+import { resolvePackagedAppPath } from "./runtime";
 
-const appPath = path.resolve(
-  __dirname,
-  "../../apps/desktop-monitor/out/QuietClaw-darwin-arm64/QuietClaw.app/Contents/MacOS/QuietClaw"
-);
+const appPath = resolvePackagedAppPath();
 
 test("verify UI fixes with 30 groups", async () => {
   const electronApp = await electron.launch({
