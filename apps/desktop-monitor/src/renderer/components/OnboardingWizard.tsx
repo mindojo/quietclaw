@@ -500,9 +500,12 @@ export function OnboardingWizard({
           </button>
           {renderTelegramMock("BotFather", "B", [
             { text: "/newbot", user: true },
-            { text: "Alright, a new bot. How are we going to call it?" },
-            { text: "Something like QuietClaw Monitor works well." },
+            { text: "Alright, a new bot. How are we going to call it? Please choose a name for your bot." },
+            { text: "MySummaryBot", user: true },
           ])}
+          <p style={{ fontSize: 12, color: "var(--text-tertiary)", margin: "6px 0 0", fontStyle: "italic" }}>
+            ↑ Choose any name that makes sense to you — this is what you'll see in your Telegram chat list.
+          </p>
         </div>
 
         <Box sx={{ display: "flex", gap: 1.5, mt: 1.5 }}>
@@ -528,11 +531,13 @@ export function OnboardingWizard({
 
         <div className="wizard-card">
           {renderTelegramMock("BotFather", "B", [
-            { text: "QuietClaw Monitor", user: true },
-            { text: "Good. Now send me the username for your bot." },
-            { text: "quietclaw_helper_bot", user: true },
-            { text: "Done. I will generate a token next." },
+            { text: "Good. Now let's choose a username. It must end in 'bot'." },
+            { text: "mysummaries_bot", user: true },
+            { text: "Done! Congratulations on your new bot. You will find it at t.me/mysummaries_bot.\n\nUse this token to access the HTTP API:\n8317643…:AAH_kx9mQ3vZ…\n\nKeep your token secure and store it safely." },
           ])}
+          <p style={{ fontSize: 12, color: "var(--text-tertiary)", margin: "6px 0 0", fontStyle: "italic" }}>
+            ↑ Tap the token in BotFather's message to copy it — you'll paste it in the next step.
+          </p>
         </div>
 
         <Box sx={{ display: "flex", gap: 1.5, mt: 1.5 }}>

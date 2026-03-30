@@ -4,6 +4,8 @@ import { WebpackPlugin } from "@electron-forge/plugin-webpack";
 import path from "node:path";
 
 const assetsDir = path.resolve(__dirname, "assets");
+const appIconBasePath = path.resolve(assetsDir, "icon");
+const windowsIconPath = path.resolve(assetsDir, "icon.ico");
 const isDevMode = process.env.NODE_ENV !== "production";
 
 const contentSecurityPolicy = [
@@ -66,7 +68,7 @@ const config: ForgeConfig = {
     appBundleId: "com.quietclaw.desktop-monitor",
     asar: true,
     executableName: "QuietClaw",
-    icon: path.resolve(assetsDir, "icon"),
+    icon: appIconBasePath,
     ignore: (file: string) => {
       if (!file) {
         return false;
@@ -104,8 +106,11 @@ const config: ForgeConfig = {
           ? {
               certificateFile: windowsCertificateFile,
               certificatePassword: windowsCertificatePassword,
+              setupIcon: windowsIconPath,
             }
-          : {},
+          : {
+              setupIcon: windowsIconPath,
+            },
       platforms: ["win32"],
     },
     {
